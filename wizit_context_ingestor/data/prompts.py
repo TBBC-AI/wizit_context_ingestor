@@ -12,6 +12,7 @@ PARSE_DOC_SYSTEM_PROMPT = """
     If errors, unusual formats, or unclear text prevent accurate transcription of a page, note the issue and proceed to the next page.
     The goal is to complete the document's transcription, avoiding partial transcriptions unless specified.
     Feedback and Error Reporting: Should you encounter issues that prevent the transcription of any page, please provide feedback on the nature of these issues and continue with the transcription of the following pages.
+    Ensure that the transcription is accurate, complete and keeps the original language intact.
     For each page/section/paragraph add a context heading and a brief description of the section to optimize the document for RAG (retrieval augmented generation)
     ALWAYS USE THE SAME LANGUAGE OF THE DOCUMENT TO GENERATE THE CONTEXT HEADING AND DESCRIPTION
 """

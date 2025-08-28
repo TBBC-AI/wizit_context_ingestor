@@ -6,7 +6,7 @@ import logging
 from typing import List, Any
 from langchain_core.documents import Document
 from langchain_experimental.text_splitter import SemanticChunker
-from tbbc_mega_ingestor.application.interfaces import RagChunker
+from wizit_context_ingestor.application.interfaces import RagChunker
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +20,11 @@ class SemanticChunks(RagChunker):
     def __init__(self, embeddings_model: Any):
         """
         Initialize a document chunker with an embeddings model.
-        
+
         Args:
             embeddings_model: The embeddings model to use for semantic chunking
                              (must be compatible with LangChain's embeddings interface)
-        
+
         Notes:
             By default the semantic chunker uses percentile above 95% to keep sentences separated
             and a minimum chunk size of 200 characters.
@@ -41,13 +41,13 @@ class SemanticChunks(RagChunker):
     def gen_chunks_for_document(self, document: Document) -> List[Document]:
         """
         Split a document into semantically coherent chunks.
-        
+
         Args:
             documents: The text from documents to split into chunks
-            
+
         Returns:
             List of strings containing the chunked content
-            
+
         Raises:
             Exception: If there's an error during the chunking process
         """

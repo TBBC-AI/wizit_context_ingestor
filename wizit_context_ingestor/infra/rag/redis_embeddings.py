@@ -7,7 +7,7 @@ import logging
 # from langchain_postgres import PGVectorStore, PGEngine
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
-from tbbc_mega_ingestor.application.interfaces import EmbeddingsManager
+from wizit_context_ingestor.application.interfaces import EmbeddingsManager
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -54,10 +54,10 @@ class RedisEmbeddingsManager(EmbeddingsManager):
 
     def configure_vector_store(
         self,
-        table_name: str = "langchain_pg_embedding", 
-        vector_size: int = 768, 
-        content_column: str = "document", 
-        id_column: str = "id", 
+        table_name: str = "langchain_pg_embedding",
+        vector_size: int = 768,
+        content_column: str = "document",
+        id_column: str = "id",
         metadata_json_column: str = "cmetadata",
         pg_record_manager: str = "postgres/langchain_pg_collection"
     ):
@@ -66,8 +66,8 @@ class RedisEmbeddingsManager(EmbeddingsManager):
 
     def init_vector_store(
         self,
-        table_name: str = "langchain_pg_embedding", 
-        content_column: str = "document", 
+        table_name: str = "langchain_pg_embedding",
+        content_column: str = "document",
         metadata_json_column: str = "cmetadata",
         id_column: str = "id",
     ):
@@ -79,11 +79,11 @@ class RedisEmbeddingsManager(EmbeddingsManager):
         def wrapper(self, *args, **kwargs):
           # Common validation logic
           if self.vector_store is None:
-            raise Exception("Vector store not initialized") 
+            raise Exception("Vector store not initialized")
           return func(self, *args, **kwargs)
         return wrapper
 
-   
+
     @vector_store_initialized
     def index_documents(self, docs: List[Document]):
         """
@@ -95,7 +95,7 @@ class RedisEmbeddingsManager(EmbeddingsManager):
 
         Args:
           docs: A list of LangChain Document objects to add to the vector store
-                Each Document should have page_content and metadata attributes 
+                Each Document should have page_content and metadata attributes
                 from langchain_core.documents import Document
         Returns:
           None
@@ -109,7 +109,7 @@ class RedisEmbeddingsManager(EmbeddingsManager):
         except Exception as e:
             logger.error(f"Error indexing documents: {str(e)}")
             raise
-        
+
     @vector_store_initialized
     def get_documents_by_id(self, id: str):
         """
@@ -120,7 +120,7 @@ class RedisEmbeddingsManager(EmbeddingsManager):
         except Exception as e:
             logger.error(f"Error getting documents by ID: {str(e)}")
             raise
-        
+
     @vector_store_initialized
     def delete_documents_by_id(self, ids: list[str]):
         """
@@ -131,11 +131,11 @@ class RedisEmbeddingsManager(EmbeddingsManager):
         except Exception as e:
             logger.error(f"Error deleting documents by ID: {str(e)}")
             raise
-        
+
     def get_documents_keys_by_source_id(self, source_id: str):
         """Get documents keys by source ID."""
         pass
-    
+
     def delete_documents_by_source_id(self, source_id: str):
         """Delete documents by source ID."""
         pass

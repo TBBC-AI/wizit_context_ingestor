@@ -5,7 +5,7 @@ import logging
 from langchain_postgres import PGVectorStore, PGEngine
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
-from tbbc_mega_ingestor.application.interfaces import EmbeddingsManager
+from wizit_context_ingestor.application.interfaces import EmbeddingsManager
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -63,13 +63,13 @@ class PgEmbeddingsManager(EmbeddingsManager):
         except Exception as e:
             logger.error(f"Failed to initialize PgEmbeddingsManager: {str(e)}")
             raise
-        
+
     def configure_vector_store(
-      self, 
-      table_name: str = "langchain_pg_embedding", 
-      vector_size: int = 768, 
-      content_column: str = "document", 
-      id_column: str = "id", 
+      self,
+      table_name: str = "langchain_pg_embedding",
+      vector_size: int = 768,
+      content_column: str = "document",
+      id_column: str = "id",
       metadata_json_column: str = "cmetadata",
       pg_record_manager: str = "postgres/langchain_pg_collection"
     ):
@@ -88,9 +88,9 @@ class PgEmbeddingsManager(EmbeddingsManager):
       self.record_manager.create_schema()
 
     def init_vector_store(
-      self, 
-      table_name: str = "langchain_pg_embedding", 
-      content_column: str = "document", 
+      self,
+      table_name: str = "langchain_pg_embedding",
+      content_column: str = "document",
       metadata_json_column: str = "cmetadata",
       id_column: str = "id",
       pg_record_manager: str = "postgres/langchain_pg_collection"
@@ -113,7 +113,7 @@ class PgEmbeddingsManager(EmbeddingsManager):
         def wrapper(self, *args, **kwargs):
           # Common validation logic
           if self.vector_store is None:
-            raise Exception("Vector store not initialized") 
+            raise Exception("Vector store not initialized")
           if self.record_manager is None:
             raise Exception("Record manager not initialized")
           return func(self, *args, **kwargs)
@@ -130,7 +130,7 @@ class PgEmbeddingsManager(EmbeddingsManager):
 
         Args:
           docs: A list of LangChain Document objects to add to the vector store
-                Each Document should have page_content and metadata attributes 
+                Each Document should have page_content and metadata attributes
                 from langchain_core.documents import Document
         Returns:
           None
@@ -161,7 +161,7 @@ class PgEmbeddingsManager(EmbeddingsManager):
         except Exception as e:
             logger.error(f"Error getting documents keys by source ID: {str(e)}")
             raise
-        
+
     @vector_store_initialized
     def delete_documents_by_source_id(self, source_id: str):
         """
@@ -174,7 +174,7 @@ class PgEmbeddingsManager(EmbeddingsManager):
         except Exception as e:
             logger.error(f"Error deleting documents by source ID: {str(e)}")
             raise
-        
+
     # def get_retriever(self, search_type: str = "mmr", k: int = 20):
     #     """
     #     Get a retriever interface to the vector store for semantic search.

@@ -10,15 +10,15 @@ from langchain_core.output_parsers.pydantic import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.documents import Document
 
-from tbbc_mega_ingestor.infra.vertex_model import VertexModels
-from tbbc_mega_ingestor.infra.persistence import S3StorageService, LocalStorageService, SupabaseStoreService
+from wizit_context_ingestor.infra.vertex_model import VertexModels
+from wizit_context_ingestor.infra.persistence import S3StorageService, LocalStorageService, SupabaseStoreService
 
 GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
 GCP_PROJECT_LOCATION ="us-central1"# os.environ.get("GCP_PROJECT_LOCATION")
 
 
 LLM_AS_JUDGE_SYSTEM_PROMPT = """
-You are a language model evaluator. Your task is to assess how well a given chunk of text provides 
+You are a language model evaluator. Your task is to assess how well a given chunk of text provides
 meaningful and relevant context in relation to a specific query, based on the Given a document.
 
 <markdown_content>
@@ -52,7 +52,7 @@ def evaluate_chunk_generator(md_file_name: str, json_file_name: str):
     file_key = os.path.join(os.path.dirname(__file__), "tmp", json_file_name)
     markdown_file_key = os.path.join(os.path.dirname(__file__), "tmp", md_file_name)
     gcp_sa = None
-    local_persistence_service = LocalStorageService()     
+    local_persistence_service = LocalStorageService()
     with open(gcp_sa_path, 'r') as gcp_sa_json:
         gcp_sa = json.loads(gcp_sa_json.read())
     vertex_model = VertexModels(
@@ -73,25 +73,25 @@ def evaluate_chunk_generator(md_file_name: str, json_file_name: str):
     responses = []
 
 
-    for chunk in chunks_and_context:        
+    for chunk in chunks_and_context:
         # Create the prompt template with image
         prompt = ChatPromptTemplate.from_messages([
                     ("system", LLM_AS_JUDGE_SYSTEM_PROMPT),
                     (
                         "human", [{
                             "type": "text",
-                                "text": f"""Evalutate context for the following chunk: <chunk>{chunk["page_content"]}</chunk> 
+                                "text": f"""Evalutate context for the following chunk: <chunk>{chunk["page_content"]}</chunk>
                                 <context>{chunk["metadata"]['context']}</context>"""
                         }]
                     ),
                 ]).partial(
-                    markdown_content=markdown_content,                
+                    markdown_content=markdown_content,
                 )
                 # Create the chain
         chain = prompt | vertex_model.llm_model
                 # Process the image
-        results = chain.invoke({})        
-        responses.append(results.content)        
+        results = chain.invoke({})
+        responses.append(results.content)
 
     print(responses)
 

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from tbbc_mega_ingestor import  DeelabTranscribeManager, DeelabRedisChunksManager
+from wizit_context_ingestor import  DeelabTranscribeManager, DeelabRedisChunksManager
 
 GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
 GCP_PROJECT_LOCATION = os.environ.get("GCP_PROJECT_LOCATION")
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     # deelab_transcribe_manager = DeelabTranscribeManager(
     #     GCP_PROJECT_ID,
-    #     GCP_PROJECT_LOCATION, 
+    #     GCP_PROJECT_LOCATION,
     #     gcp_secret_name
     # )
 
@@ -56,7 +56,7 @@ if __name__ == '__main__':
         S3_TARGET_BUCKET_NAME
     )
 
- 
+
     # deelab_chunks_manager.delete_document_context_chunks_from_aws_cloud(
     #     "TBBC-2025.pdf.md",
     #     S3_ORIGIN_BUCKET_NAME,
