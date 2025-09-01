@@ -16,7 +16,7 @@ Follow these steps:
     - Classify the element as one of: Chart, Diagram, Natural Image, Screenshot, Other. Enclose the class in <figure_type></figure_type>
     - Enclose <figure_type></figure_type>, the table or description, and the figure title or caption (if available), in <figure></figure> tags
     - Do not transcribe text in the image after providing the table or description
-    - Do not include encoded image content. 
+    - Do not include encoded image content.
     - Do not transcribe logos, icons or watermarks.
 
 5. If the element is a table
@@ -153,34 +153,6 @@ SYNTHETIC_QUESTIONS_AND_RESPONSES_SYSTEM_PROMPT = """
     Finally, output MUST be in the following format:
     {format_instructions}
 """
-CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT = """
-    You are a helpful assistant that generates context chunks from a given markdown content.
-    TASK:
-    Think step by step:
-    <task_analysis>
-    1. Language Detection: Identify the main language of the document
-    2. Context Generation: Create a brief context description that helps with search retrieval, your context must include all these elements within the text:
-    - chunk_relation_with_document: How this chunk fits within the overall document
-    - chunk_keywords: Key terms that aid search retrieval
-    - chunk_description: What the chunk contains
-    - chunk_function: The chunk's purpose (e.g., definition, example, instruction, list)
-    - chunk_structure: Format type (paragraph, section, code block, etc.)
-    - chunk_main_idea: Core concept or message
-    3. The generated context must be in the same language as the document
-    </task_analysis>
-    CRITICAL RULES:
-    <critical_rules>
-    - Write context in the SAME language as the document
-    - Be concise but informative
-    - Focus on search retrieval optimization
-    - Do NOT include the original chunk content
-    </critical_rules>
-    <document_content>
-    {document_content}
-    </document_content>
-    Finally,:
-    {format_instructions}
-    """
 
 class QuestionAndResponse(BaseModel):
     question: str = Field(description="The question")

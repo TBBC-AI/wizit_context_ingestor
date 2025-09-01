@@ -4,7 +4,7 @@ from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
 from langchain_core.output_parsers.pydantic import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.documents import Document
-from .constants import \
+from ..data.prompts import \
     IMAGE_TRANSCRIPTION_SYSTEM_PROMPT, \
     CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT, \
     ContextChunk
@@ -39,12 +39,12 @@ class AWSModels(AiApplicationService):
         raise "Not implemented"
 
     def load_chat_model(
-        self,          
+        self,
         model: str = "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
         temperature: float = 0.7,
         max_tokens: int = 8000,
         region_name: str = "us-east-1") -> ChatBedrockConverse:
-         
+
         """
         Load an AWS AI chat model for text generation.
 
@@ -137,7 +137,7 @@ class AWSModels(AiApplicationService):
             chunk.page_content = f"Context:{results.context}, Content:{chunk.page_content}"
             chunk.metadata["context"] = results.context
             return chunk
-                
+
         except Exception as e:
             logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
 

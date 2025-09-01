@@ -13,7 +13,6 @@ REDIS_CONNECTION_STRING = os.environ.get("REDIS_CONNECTION_STRING")
 gcp_sa_path = os.path.join(os.path.dirname(__file__), "credentials", "gcp_sa.json")
 
 if __name__ == '__main__':
-
     # db_connection_secret_name = "tbbc-mega-ingestor-db-conn"
     gcp_secret_name = "tbbc-mega-ingestor-gcp-sa"
 

@@ -3,10 +3,7 @@ from google.oauth2 import service_account
 from langchain_core.output_parsers.pydantic import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.documents import Document
-from .constants import \
-    IMAGE_TRANSCRIPTION_SYSTEM_PROMPT, \
-    CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT, \
-    ContextChunk
+from ..data.prompts import CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT, ContextChunk
 from typing import Dict, Any, Optional, List, Union
 from .interfaces import AiApplicationService
 from ..domain.models import ParsedDocPage
@@ -27,38 +24,6 @@ class ChunkerService:
         """
         self.ai_application_service = ai_application_service
         self.chat_model = self.ai_application_service.load_chat_model()
-
-    def __init__(
-            self, project_id: str, location: str, 
-            json_service_account: Dict[str, Any],
-            scopes: Optional[List[str]] = None):
-        """
-        Initialize the VertexModels class with Google Cloud credentials.
-
-        Args:
-            project_id: The Google Cloud project ID
-            location: The Google Cloud region (e.g., "us-central1")
-            json_service_account: Dictionary containing service account credentials
-            scopes: Optional list of authentication scopes. Defaults to cloud platform scope.
-        """
-        try:
-            print(location)
-            self.scopes = scopes or ["https://www.googleapis.com/auth/cloud-platform"]
-            self.credentials = service_account.Credentials.from_service_account_info(
-                json_service_account, 
-                scopes=self.scopes
-            )
-            self.project_id = project_id
-            self.location = location
-            vertexai.init(
-                project=project_id, 
-                location=location, 
-                credentials=self.credentials
-            )
-            logger.info(f"VertexModels initialized with project {project_id} in {location}")
-        except Exception as e:
-            logger.error(f"Failed to initialize VertexModels: {str(e)}")
-            raise
 
     def _retrieve_context_chunk_in_document(self, markdown_content: str, chunk: Document) -> ContextChunk:
         """Retrieve context chunks in document."""
@@ -86,7 +51,7 @@ class ChunkerService:
             chunk.page_content = f"Context:{results.context}, Content:{chunk.page_content}"
             chunk.metadata["context"] = results.context
             return chunk
-                
+
         except Exception as e:
             logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
             raise
@@ -108,7 +73,7 @@ class ChunkerService:
     # def model_context(self):
     #     """
     #     Context manager for VertexModels to ensure proper resource cleanup.
-        
+
     #     Example:
     #         with vertex_models.model_context():
     #             # Use vertex models here

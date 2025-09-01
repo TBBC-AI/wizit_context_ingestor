@@ -6,7 +6,7 @@ from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
 from langchain_core.output_parsers.pydantic import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.documents import Document
-from .constants import \
+from ..data.prompts import \
     IMAGE_TRANSCRIPTION_SYSTEM_PROMPT, \
     CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT, \
     ContextChunk
@@ -26,7 +26,7 @@ class VertexModels(AiApplicationService):
     """
 
     def __init__(
-            self, project_id: str, location: str, 
+            self, project_id: str, location: str,
             json_service_account: Dict[str, Any],
             scopes: Optional[List[str]] = None):
         """
@@ -42,14 +42,14 @@ class VertexModels(AiApplicationService):
             print(location)
             self.scopes = scopes or ["https://www.googleapis.com/auth/cloud-platform"]
             self.credentials = service_account.Credentials.from_service_account_info(
-                json_service_account, 
+                json_service_account,
                 scopes=self.scopes
             )
             self.project_id = project_id
             self.location = location
             vertexai.init(
-                project=project_id, 
-                location=location, 
+                project=project_id,
+                location=location,
                 credentials=self.credentials
             )
             logger.info(f"VertexModels initialized with project {project_id} in {location}")
@@ -58,7 +58,7 @@ class VertexModels(AiApplicationService):
             raise
 
     def load_embeddings_model(
-        self, 
+        self,
         embeddings_model_id: str = "text-embedding-005") -> VertexAIEmbeddings:  # noqa: E125
         """
         Load and return a Vertex AI embeddings model.
@@ -81,7 +81,7 @@ class VertexModels(AiApplicationService):
             logger.error(f"Failed to load embeddings model {embeddings_model_id}: {str(e)}")
             raise
 
-    def load_chat_model(self, 
+    def load_chat_model(self,
         chat_model_id: str = "claude-3-5-haiku@20241022",
         temperature: float = 0.15,
         max_tokens: int = 8192,
@@ -243,7 +243,7 @@ class VertexModels(AiApplicationService):
                 for key, value in chunk_metadata.items():
                     chunk.metadata[key] = value
             return chunk
-                
+
         except Exception as e:
             logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
             raise
@@ -265,7 +265,7 @@ class VertexModels(AiApplicationService):
     # def model_context(self):
     #     """
     #     Context manager for VertexModels to ensure proper resource cleanup.
-        
+
     #     Example:
     #         with vertex_models.model_context():
     #             # Use vertex models here

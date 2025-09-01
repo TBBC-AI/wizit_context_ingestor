@@ -15,7 +15,7 @@ class TranscriptionService:
     """
         Service for transcribing documents.
     """
-     
+
     def __init__(self, ai_application_service: AiApplicationService):
         self.ai_application_service = ai_application_service
         self.chat_model = self.ai_application_service.load_chat_model()
@@ -23,7 +23,7 @@ class TranscriptionService:
             ("system", IMAGE_TRANSCRIPTION_SYSTEM_PROMPT),
             MessagesPlaceholder(variable_name="history")
         ])
-    
+
     def parse_doc_page(self, document: ParsedDocPage) -> ParsedDocPage:
             """Transcribe an image to text.
             Args:
@@ -54,5 +54,3 @@ class TranscriptionService:
             except Exception as e:
                 logger.error(f"Failed to parse document page: {str(e)}")
                 raise
-
-    
