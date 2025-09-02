@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "wizit_context_ingestor"
-version = "0.2.0"
+version = "0.2.1"
 description = "ingest data"
 authors = ["Restebance", "Jeison Patiño", "Javier Fernandez", "Daniel Quesada"]
 license = "APACHE-2.0"
