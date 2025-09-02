@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Tuple, List, Dict, Optional
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.prompts import MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
@@ -19,10 +19,12 @@ class TranscriptionService:
     def __init__(
         self,
         ai_application_service: AiApplicationService,
-        persistence_service: PersistenceService
+        persistence_service: PersistenceService,
+        target_language: str = 'es'
     ):
         self.ai_application_service = ai_application_service
         self.persistence_service = persistence_service
+        self.target_language = target_language
         self.chat_model = self.ai_application_service.load_chat_model()
 
     def parse_doc_page(self, document: ParsedDocPage) -> ParsedDocPage:
@@ -45,7 +47,7 @@ class TranscriptionService:
                         },
                         {
                             "type": "text",
-                            "text": "Transcribe the image"
+                            "text": f"Transcribe the document, ensure all content transcribed is using '{self.target_language}' language"
                         }]
                     ),
                 ])
@@ -74,7 +76,8 @@ class TranscriptionService:
         parsed_document = parse_doc_model_service.create_md_content(parsed_pages)
         return parsed_pages, parsed_document
 
-    def save_parsed_document(self, file_key: str, parsed_document: ParsedDoc, file_tags: dict = None):
+
+    def save_parsed_document(self, file_key: str, parsed_document: ParsedDoc, file_tags: Optional[Dict[str, str]] = None):
         """
         Save the parsed document to a file.
         """

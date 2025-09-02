@@ -13,13 +13,15 @@ class DeelabTranscribeManager:
         gcp_project_id: str,
         gcp_project_location: str,
         gcp_secret_name: str,
-        llm_model_id: str = "publishers/google/models/gemini-2.5-flash"
+        llm_model_id: str = "claude-3-5-haiku@20241022",
+        target_language: str = 'es',
     ):
         self.gcp_project_id = gcp_project_id
         self.gcp_project_location = gcp_project_location
         self.aws_secrets_manager = AwsSecretsManager()
         self.gcp_secret_name = gcp_secret_name
         self.llm_model_id = llm_model_id
+        self.target_language = target_language
         self.gcp_sa_dict = self._get_gcp_sa_dict(gcp_secret_name)
         self.vertex_model = self._get_vertex_model()
 
@@ -51,7 +53,8 @@ class DeelabTranscribeManager:
 
             transcribe_document_service = TranscriptionService(
                 ai_application_service=self.vertex_model,
-                persistence_service=s3_persistence_service
+                persistence_service=s3_persistence_service,
+                target_language=self.target_language
             )
             parsed_pages, parsed_document = transcribe_document_service.process_document(file_key)
             origin_bucket_file_tags = s3_persistence_service.retrieve_file_tags(file_key, s3_origin_bucket_name)
@@ -73,13 +76,15 @@ class DeelabRedisChunksManager:
             gcp_project_location: str,
             gcp_secret_name: str,
             redis_connection_string: str,
-            llm_model_id: str = "publishers/google/models/gemini-2.5-flash"
+            llm_model_id: str = "claude-3-5-haiku@20241022",
+            target_language: str = "es"
     ):
         self.gcp_project_id = gcp_project_id
         self.gcp_project_location = gcp_project_location
         self.aws_secrets_manager = AwsSecretsManager()
         self.gcp_secret_name = gcp_secret_name
         self.llm_model_id = llm_model_id
+        self.target_language = target_language
         self.gcp_sa_dict = self._get_gcp_sa_dict(gcp_secret_name)
         self.redis_connection_string = redis_connection_string
         self.vertex_model = self._get_vertex_model()
@@ -114,7 +119,8 @@ class DeelabRedisChunksManager:
                 ai_application_service=self.vertex_model,
                 persistence_service=local_persistence_service,
                 rag_chunker=rag_chunker,
-                embeddings_manager=redis_embeddings_manager
+                embeddings_manager=redis_embeddings_manager,
+                target_language=self.target_language
             )
             context_chunks = context_chunks_in_document_service.get_context_chunks_in_document(file_key)
             print("context_chunks", context_chunks)
@@ -147,7 +153,8 @@ class DeelabRedisChunksManager:
                 ai_application_service=self.vertex_model,
                 persistence_service=s3_persistence_service,
                 rag_chunker=rag_chunker,
-                embeddings_manager=redis_embeddings_manager
+                embeddings_manager=redis_embeddings_manager,
+                target_language=self.target_language
             )
             context_chunks = context_chunks_in_document_service.get_context_chunks_in_document(file_key, target_bucket_file_tags)
             return context_chunks

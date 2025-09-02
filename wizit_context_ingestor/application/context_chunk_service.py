@@ -20,7 +20,8 @@ class ContextChunksInDocumentService:
         ai_application_service: AiApplicationService,
         persistence_service: PersistenceService,
         rag_chunker: RagChunker,
-        embeddings_manager: EmbeddingsManager
+        embeddings_manager: EmbeddingsManager,
+        target_language: str = 'es'
     ):
         """
         Initialize the ChunkerService.
@@ -29,6 +30,7 @@ class ContextChunksInDocumentService:
         self.persistence_service = persistence_service
         self.rag_chunker = rag_chunker
         self.embeddings_manager = embeddings_manager
+        self.target_language = target_language
         self.embeddings_manager.init_vector_store()
         self.chat_model = self.ai_application_service.load_chat_model()
 
@@ -42,7 +44,7 @@ class ContextChunksInDocumentService:
                 (
                     "human", [{
                         "type": "text",
-                            "text": f"Generate context for the following chunk: <chunk>{chunk.page_content}</chunk>"
+                            "text": f"Generate context for the following chunk: <chunk>{chunk.page_content}</chunk>,  ensure all content chunks are generated in '{self.target_language}' language"
                     }]
                 ),
             ]).partial(
