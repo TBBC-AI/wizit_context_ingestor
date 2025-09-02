@@ -13,7 +13,7 @@ class DeelabTranscribeManager:
         gcp_project_id: str,
         gcp_project_location: str,
         gcp_secret_name: str,
-        llm_model_id: str = "claude-3-5-haiku@20241022",
+        llm_model_id: str = "claude-3-5-sonnet-v2@20241022",
         target_language: str = 'es',
     ):
         self.gcp_project_id = gcp_project_id

@@ -4,22 +4,13 @@ IMAGE_TRANSCRIPTION_SYSTEM_PROMPT = """
 Transcribe the exact text from the provided Document, regardless of length, ensuring extreme accuracy. Organize the transcript using markdown.
 Follow these steps:
 <steps>
-1. Check every piece of content, then determine the main language of the document. This language will be used for the transcription of every piece of information.
-2. Examine the provided page carefully. It is essential to capture every piece of text exactly as it appears on each page, maintaining the original mainlanguage, formatting and structure as closely as possible.
+1. Check every piece of content, then determine the main language of the document.
+2. The main language detected must be used for the transcription of all content.
+2. Examine the provided page carefully. It is essential to capture every piece of text exactly as it appears on each page, maintaining language, formatting and structure as closely as possible.
 3. Identify all elements present in the page, including headings, body text, footnotes, tables, images, captions, page numbers, paragraphs, lists, indents, and any text within images, with special attention to retain bold, italicized, or underlined formatting, etc.
-4. For images or figures with content (not tables):
-    - Ensure you retrieve meaningful descriptions of the image content.
-    - If the information in the image can be represented by a table, generate the table containing the information of the image, otherwise provide a detailed description about the information in the image
-    - Classify the element as one of: Chart, Diagram, Natural Image, Screenshot, Other. Enclose the class in <figure_type></figure_type>
-    - Enclose <figure_type></figure_type>, the table or description, and the figure title, caption (if available) or description in <figure></figure> tags
-5. For tables:
-    - Create a markdown table
-    - Maintain cell alignment as closely as possible
-    - Transcribe the table as well as possible
-6. Check every piece of transcribed content and ensure it is in the main language of the document: content, figures, tables. When this condition is not met, provide a translation of the content in the main language.
-7. Use markdown syntax to format your output:
-    - Headings: # for main, ## for sections, ### for subsections, etc.
-    - Lists: * or - for bulleted, 1. 2. 3. for numbered
+4. Detect images or figures with content (not tables), ensure you retrieve meaningful descriptions of images content.
+5. Detect tables and create markdown tables, transcribe them as well as possible.
+6. Check every piece of transcribed content and ensure it is in the main language of the document: content, figures, tables. When this condition is not met, translate the content into the main language.
 </steps>
 RULES:
 <rules>
@@ -39,7 +30,19 @@ RULES:
 8. Do not include special characters or symbols that may interfere with markdown formatting.
 9. Do not include encoded image content.
 10. Do not transcribe logos, icons or watermarks.
-11. Do not include any content in your transcription that is not in the same main language of the document.
+11. ENSURE ALL transcribed content is in the main document language. OUTPUT content must be in one language.
+12. Image transcription rules:
+<image_transcription_rules>
+    1. If the information in the image can be represented by a table, generate the table containing the information of the image, otherwise provide a detailed description about the information in the image
+    2. Classify the element as one of: Chart, Diagram, Natural Image, Screenshot, Other. Enclose the class in <figure_type></figure_type>
+    3. Enclose <figure_type></figure_type>, the table or description, and the figure title, caption (if available) or description in <figure></figure> tags
+</image_transcription_rules>
+13. Tables transcription rules:
+<tables_transcription_rules>
+    1. Create a markdown table
+    2. Maintain cell alignment as closely as possible
+    3. Transcribe the table as well as possible
+</tables_transcription_rules>
 </rules>
 """
 
