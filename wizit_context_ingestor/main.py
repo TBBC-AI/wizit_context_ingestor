@@ -1,12 +1,9 @@
-import os
 import json
 from .infra.vertex_model import VertexModels
-from .infra.aws_model import AWSModels
-from .application.services import TranscribeDocumentService, ContextChunksInDocumentService
 from .application.transcription_service import TranscriptionService
+from .application.context_chunk_service import ContextChunksInDocumentService
 from .infra.persistence import S3StorageService, LocalStorageService
 from .infra.rag.semantic_chunks import SemanticChunks
-from .infra.rag.pg_embeddings import PgEmbeddingsManager
 from .infra.rag.redis_embeddings import RedisEmbeddingsManager
 from .infra.secrets.aws_secrets_manager import AwsSecretsManager
 
