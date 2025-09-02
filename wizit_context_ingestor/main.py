@@ -3,6 +3,7 @@ import json
 from .infra.vertex_model import VertexModels
 from .infra.aws_model import AWSModels
 from .application.services import TranscribeDocumentService, ContextChunksInDocumentService
+from .application.transcription_service import TranscriptionService
 from .infra.persistence import S3StorageService, LocalStorageService
 from .infra.rag.semantic_chunks import SemanticChunks
 from .infra.rag.pg_embeddings import PgEmbeddingsManager
@@ -51,7 +52,7 @@ class DeelabTranscribeManager:
                 target_bucket_name=s3_target_bucket_name
             )
 
-            transcribe_document_service = TranscribeDocumentService(
+            transcribe_document_service = TranscriptionService(
                 ai_application_service=self.vertex_model,
                 persistence_service=s3_persistence_service
             )

@@ -46,7 +46,6 @@ class ChunkerService:
             chain = prompt | model_with_structure
             # Process the image
             results = chain.invoke({})
-            print(chunk)
             chunk.page_content = f"Context:{results.context}, Content:{chunk.page_content}"
             chunk.metadata["context"] = results.context
             return chunk
