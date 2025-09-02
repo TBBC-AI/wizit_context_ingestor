@@ -23,7 +23,10 @@ class AWSModels(AiApplicationService):
     provides methods to load embeddings and chat models.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        llm_model_id: str = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+    ):
         """
         Initialize the VertexModels class with Google Cloud credentials.
 
@@ -34,13 +37,13 @@ class AWSModels(AiApplicationService):
             scopes: Optional list of authentication scopes. Defaults to cloud platform scope.
         """
         print("Initializing AWS model")
+        self.llm_model_id = llm_model_id
 
     def load_embeddings_model(self):  # noqa: E125
         raise "Not implemented"
 
     def load_chat_model(
         self,
-        model: str = "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
         temperature: float = 0.7,
         max_tokens: int = 8000,
         region_name: str = "us-east-1") -> ChatBedrockConverse:
@@ -59,7 +62,7 @@ class AWSModels(AiApplicationService):
         """
         try:
             self.llm_model = ChatBedrockConverse(
-                model=model,
+                model=self.llm_model_id,
                 temperature=temperature,
                 callbacks=[StdOutCallbackHandler()],
                 max_tokens=max_tokens,

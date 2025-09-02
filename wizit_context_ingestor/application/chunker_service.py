@@ -1,4 +1,3 @@
-import vertexai
 from google.oauth2 import service_account
 from langchain_core.output_parsers.pydantic import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -42,7 +41,7 @@ class ChunkerService:
                 document_content=markdown_content,
                 format_instructions=chunk_output_parser.get_format_instructions()
             )
-            model_with_structure = self.llm_model.with_structured_output(ContextChunk)
+            model_with_structure = self.chat_model.with_structured_output(ContextChunk)
             # Create the chain
             chain = prompt | model_with_structure
             # Process the image

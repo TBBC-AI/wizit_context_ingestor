@@ -26,9 +26,12 @@ class VertexModels(AiApplicationService):
     """
 
     def __init__(
-            self, project_id: str, location: str,
+            self,
+            project_id: str,
+            location: str,
             json_service_account: Dict[str, Any],
-            scopes: Optional[List[str]] = None):
+            scopes: Optional[List[str]] = None,
+            llm_model_id: str = "claude-3-5-haiku@20241022"):
         """
         Initialize the VertexModels class with Google Cloud credentials.
 
@@ -45,6 +48,7 @@ class VertexModels(AiApplicationService):
                 json_service_account,
                 scopes=self.scopes
             )
+            self.llm_model_id = llm_model_id
             self.project_id = project_id
             self.location = location
             vertexai.init(
@@ -82,7 +86,6 @@ class VertexModels(AiApplicationService):
             raise
 
     def load_chat_model(self,
-        chat_model_id: str = "claude-3-5-haiku@20241022",
         temperature: float = 0.15,
         max_tokens: int = 8192,
         stop: Optional[List[str]] = None,
@@ -103,14 +106,14 @@ class VertexModels(AiApplicationService):
             An instance of ChatVertexAI ready for chat interactions.
         """
         try:
-            if "gemini" in chat_model_id:
-                return self.load_chat_model_gemini(chat_model_id, temperature, max_tokens, stop, **chat_model_params)
-            elif "claude" in chat_model_id:
-                return self.load_chat_model_anthropic(chat_model_id, temperature, max_tokens, stop, **chat_model_params)
+            if "gemini" in self.llm_model_id:
+                return self.load_chat_model_gemini(self.llm_model_id, temperature, max_tokens, stop, **chat_model_params)
+            elif "claude" in self.llm_model_id:
+                return self.load_chat_model_anthropic(self.llm_model_id, temperature, max_tokens, stop, **chat_model_params)
             else:
-                raise ValueError(f"Unsupported chat model: {chat_model_id}")
+                raise ValueError(f"Unsupported chat model: {self.llm_model_id}")
         except Exception as e:
-            logger.error(f"Failed to retrieve chat model {chat_model_id}: {str(e)}")
+            logger.error(f"Failed to retrieve chat model {self.llm_model_id}: {str(e)}")
             raise
 
     def load_chat_model_gemini(self,
@@ -176,7 +179,6 @@ class VertexModels(AiApplicationService):
         except Exception as e:
             logger.error(f"Failed to retrieve chat model {chat_model_id}: {str(e)}")
             raise
-
 
     def parse_doc_page(self, document: ParsedDocPage) -> ParsedDocPage:
         """Transcribe an image to text.

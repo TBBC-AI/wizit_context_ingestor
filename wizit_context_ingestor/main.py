@@ -11,15 +11,17 @@ from .infra.secrets.aws_secrets_manager import AwsSecretsManager
 
 class DeelabTranscribeManager:
 
-    def __init__(self, 
+    def __init__(self,
         gcp_project_id: str,
         gcp_project_location: str,
-        gcp_secret_name: str
+        gcp_secret_name: str,
+        llm_model_id: str = "publishers/google/models/gemini-2.5-flash"
     ):
         self.gcp_project_id = gcp_project_id
         self.gcp_project_location = gcp_project_location
         self.aws_secrets_manager = AwsSecretsManager()
         self.gcp_secret_name = gcp_secret_name
+        self.llm_model_id = llm_model_id
         self.gcp_sa_dict = self._get_gcp_sa_dict(gcp_secret_name)
         self.vertex_model = self._get_vertex_model()
 
@@ -27,17 +29,18 @@ class DeelabTranscribeManager:
         vertex_gcp_sa = self.aws_secrets_manager.get_secret(gcp_secret_name)
         vertex_gcp_sa_dict = json.loads(vertex_gcp_sa)
         return vertex_gcp_sa_dict
-    
+
     def _get_vertex_model(self):
         vertex_model = VertexModels(
             self.gcp_project_id,
             self.gcp_project_location,
-            self.gcp_sa_dict
-        )   
+            self.gcp_sa_dict,
+            llm_model_id=self.llm_model_id
+        )
         return vertex_model
 
     def aws_cloud_transcribe_document(
-            self, 
+            self,
             file_key: str,
             s3_origin_bucket_name: str,
             s3_target_bucket_name: str
@@ -67,16 +70,18 @@ class DeelabTranscribeManager:
 class DeelabRedisChunksManager:
 
     def __init__(
-            self, 
-            gcp_project_id: str, 
+            self,
+            gcp_project_id: str,
             gcp_project_location: str,
             gcp_secret_name: str,
-            redis_connection_string: str
+            redis_connection_string: str,
+            llm_model_id: str = "publishers/google/models/gemini-2.5-flash"
     ):
         self.gcp_project_id = gcp_project_id
         self.gcp_project_location = gcp_project_location
         self.aws_secrets_manager = AwsSecretsManager()
         self.gcp_secret_name = gcp_secret_name
+        self.llm_model_id = llm_model_id
         self.gcp_sa_dict = self._get_gcp_sa_dict(gcp_secret_name)
         self.redis_connection_string = redis_connection_string
         self.vertex_model = self._get_vertex_model()
@@ -86,24 +91,18 @@ class DeelabRedisChunksManager:
         vertex_gcp_sa = self.aws_secrets_manager.get_secret(gcp_secret_name)
         vertex_gcp_sa_dict = json.loads(vertex_gcp_sa)
         return vertex_gcp_sa_dict
-    
-    # TODO connection from secret manager
-    # def _get_vector_store_connection(self, connection_secret_name: str):
-    #     connection_secret = self.aws_secrets_manager.get_secret(connection_secret_name)
-    #     connection_secret_dict = json.loads(connection_secret)
-    #     vector_store_connection = connection_secret_dict["vector_store_connection"]
-    #     return vector_store_connection
-    
+
     def _get_vertex_model(self):
         vertex_model = VertexModels(
             self.gcp_project_id,
             self.gcp_project_location,
-            self.gcp_sa_dict
+            self.gcp_sa_dict,
+            llm_model_id=self.llm_model_id
         )
         return vertex_model
 
     def context_chunks_in_document(
-        self, 
+        self,
         file_key: str
     ):
         try:
@@ -112,7 +111,7 @@ class DeelabRedisChunksManager:
                 embeddings_model=self.embeddings_model,
                 redis_connection_string=self.redis_connection_string
             )
-            local_persistence_service = LocalStorageService()        
+            local_persistence_service = LocalStorageService()
             context_chunks_in_document_service = ContextChunksInDocumentService(
                 ai_application_service=self.vertex_model,
                 persistence_service=local_persistence_service,
@@ -128,7 +127,7 @@ class DeelabRedisChunksManager:
 
     # TODO
     def context_chunks_in_document_from_aws_cloud(
-            self, 
+            self,
             file_key: str,
             s3_origin_bucket_name: str,
             s3_target_bucket_name: str
@@ -139,7 +138,7 @@ class DeelabRedisChunksManager:
                 target_bucket_name=s3_target_bucket_name
             )
             target_bucket_file_tags = s3_persistence_service.retrieve_file_tags(file_key, s3_target_bucket_name)
-            
+
             rag_chunker = SemanticChunks(self.embeddings_model)
             redis_embeddings_manager = RedisEmbeddingsManager(
                 embeddings_model=self.embeddings_model,
@@ -160,7 +159,7 @@ class DeelabRedisChunksManager:
 
 
     def delete_document_context_chunks_from_aws_cloud(
-            self, 
+            self,
             file_key: str,
             s3_origin_bucket_name: str,
             s3_target_bucket_name: str
