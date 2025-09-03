@@ -51,9 +51,9 @@ class ContextChunksInDocumentService:
                 document_content=markdown_content,
                 format_instructions=chunk_output_parser.get_format_instructions()
             )
-            model_with_structure = self.chat_model.with_structured_output(ContextChunk)
+            model_with_structured_output = self.chat_model.with_structured_output(ContextChunk)
             # Create the chain
-            chain = prompt | model_with_structure
+            chain = prompt | model_with_structured_output
             # Process the image
             results = chain.invoke({})
             chunk.page_content = f"Context:{results.context}, Content:{chunk.page_content}"

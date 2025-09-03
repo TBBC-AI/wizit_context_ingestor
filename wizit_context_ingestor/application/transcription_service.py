@@ -1,9 +1,8 @@
 from typing import Tuple, List, Dict, Optional
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.prompts import MessagesPlaceholder
-from langchain_core.output_parsers import StrOutputParser
+from langchain_core.output_parsers.pydantic import PydanticOutputParser
 from logging import getLogger
-from ..data.prompts import IMAGE_TRANSCRIPTION_SYSTEM_PROMPT
+from ..data.prompts import IMAGE_TRANSCRIPTION_SYSTEM_PROMPT, Transcription
 from ..domain.models import ParsedDoc, ParsedDocPage
 from ..domain.services import ParseDocModelService
 from .interfaces import AiApplicationService, PersistenceService
@@ -35,8 +34,8 @@ class TranscriptionService:
                 Processed text
             """
             try:
-                output_parser = StrOutputParser()
                 # Create the prompt template with image
+                transcription_output_parser = PydanticOutputParser(pydantic_object=Transcription)
                 prompt = ChatPromptTemplate.from_messages([
                     ("system", IMAGE_TRANSCRIPTION_SYSTEM_PROMPT),
                     ("human", [{
@@ -50,12 +49,18 @@ class TranscriptionService:
                             "text": f"Transcribe the document, ensure all content transcribed is using '{self.target_language}' language"
                         }]
                     ),
-                ])
+                ]).partial(
+                    format_instructions=transcription_output_parser.get_format_instructions()
+                )
+                model_with_structured_output = self.chat_model.with_structured_output(Transcription)
                 # Create the chain
-                chain = prompt | self.chat_model | output_parser
+                chain = prompt | model_with_structured_output
                 # Process the image
                 result = chain.invoke({})
-                document.page_text = result
+                if result.transcription:
+                    document.page_text = result.transcription
+                else:
+                    raise ValueError("No transcription found")
                 return document
             except Exception as e:
                 logger.error(f"Failed to parse document page: {str(e)}")
