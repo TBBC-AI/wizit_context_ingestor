@@ -18,15 +18,15 @@ class S3StorageService(PersistenceService):
         self.target_bucket_name = target_bucket_name
 
 
-    def load_markdown_file_content(self, file_key: str):
+    def load_markdown_file_content(self, file_key: str) -> str:
         """Load markdown file content from S3 storage.
-        
+
         Args:
             file_key: The key (path) of the file in S3
-            
+
         Returns:
             str: The content of the file as a string
-            
+
         Raises:
             ClientError: If there's an error retrieving the object from S3
         """
@@ -49,15 +49,15 @@ class S3StorageService(PersistenceService):
             raise
 
 
-    def retrieve_raw_file(self, file_key: str):
+    def retrieve_raw_file(self, file_key: str) -> str:
         """Retrieve file path in tmp folder from S3 storage.
-        
+
         Args:
             file_key: The key (path) of the file in S3
-            
+
         Returns:
             str: The path of the file in tmp folder
-            
+
         Raises:
             ClientError: If there's an error retrieving the object from S3
         """
@@ -79,14 +79,14 @@ class S3StorageService(PersistenceService):
 
 
 
-    def save_parsed_document(self, file_key: str, parsed_document: ParsedDoc, file_tags: dict = None):
+    def save_parsed_document(self, file_key: str, parsed_document: ParsedDoc, file_tags: dict = {}):
         """Save a parsed document to S3.
-        
+
         Args:
             file_name: The key (path) to save the file to in S3
             parsed_document: The parsed document to save
             file_tags: Tags to add to parsed document
-            
+
         Raises:
             ClientError: If there's an error saving to S3
         """
@@ -116,7 +116,7 @@ class S3StorageService(PersistenceService):
         except Exception as e:
             logger.error(f"Unexpected error saving document to S3: {str(e)}")
             raise
-    
+
     def retrieve_file_tags(self, file_key: str, bucket_name: str):
         """Retrieve a file tagging dict
 

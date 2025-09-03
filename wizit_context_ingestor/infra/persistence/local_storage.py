@@ -10,7 +10,7 @@ class LocalStorageService(PersistenceService):
     def __init__(self):
         self.tmp_folder = "tmp"
 
-    def load_markdown_file_content(self, file_key: str):
+    def load_markdown_file_content(self, file_key: str) -> str:
         """Load markdown file content from local storage."""
         file_content = None
         with open(f"{self.tmp_folder}/{file_key}", "r", encoding="utf-8") as file:
@@ -18,15 +18,15 @@ class LocalStorageService(PersistenceService):
         return file_content
 
 
-    def retrieve_raw_file(self, file_key: str):
+    def retrieve_raw_file(self, file_key: str) -> str:
         """Retrieve file path in tmp folder from local storage.
-        
+
         Args:
             file_key: The key (path) of the file in local storage
-            
+
         Returns:
             str: The path of the file in tmp folder
-            
+
         Raises:
             ClientError: If there's an error retrieving the object from local storage
         """

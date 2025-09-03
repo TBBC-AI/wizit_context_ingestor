@@ -34,7 +34,7 @@ class ContextChunksInDocumentService:
         self.embeddings_manager.init_vector_store()
         self.chat_model = self.ai_application_service.load_chat_model()
 
-    def _retrieve_context_chunk_in_document(self, markdown_content: str, chunk: Document, chunk_metadata: Optional[Dict[str, Any]] = None) -> ContextChunk:
+    def _retrieve_context_chunk_in_document(self, markdown_content: str, chunk: Document, chunk_metadata: Optional[Dict[str, Any]] = None) -> Document:
         """Retrieve context chunks in document."""
         try:
             chunk_output_parser = PydanticOutputParser(pydantic_object=ContextChunk)
@@ -80,7 +80,7 @@ class ContextChunksInDocumentService:
             logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
             raise
 
-    def get_context_chunks_in_document(self, file_key: str, file_tags: dict = None):
+    def get_context_chunks_in_document(self, file_key: str, file_tags: dict = {}):
         """
         Get the context chunks in a document.
         """

@@ -2,17 +2,8 @@ import vertexai
 from google.oauth2 import service_account
 from langchain_google_vertexai import VertexAIEmbeddings, ChatVertexAI
 from langchain_google_vertexai.model_garden import ChatAnthropicVertex
-from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
-from langchain_core.output_parsers.pydantic import PydanticOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.documents import Document
-from ..data.prompts import \
-    IMAGE_TRANSCRIPTION_SYSTEM_PROMPT, \
-    CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT, \
-    ContextChunk
 from typing import Dict, Any, Optional, List, Union
 from ..application.interfaces import AiApplicationService
-from ..domain.models import ParsedDocPage
 import logging
 
 
@@ -89,7 +80,7 @@ class VertexModels(AiApplicationService):
         temperature: float = 0.15,
         max_tokens: int = 8192,
         stop: Optional[List[str]] = None,
-        **chat_model_params) -> ChatVertexAI:
+        **chat_model_params) -> Union[ChatVertexAI, ChatAnthropicVertex]:
         """
         Load a Vertex AI chat model for text generation.
 
@@ -179,102 +170,3 @@ class VertexModels(AiApplicationService):
         except Exception as e:
             logger.error(f"Failed to retrieve chat model {chat_model_id}: {str(e)}")
             raise
-
-    def parse_doc_page(self, document: ParsedDocPage) -> ParsedDocPage:
-        """Transcribe an image to text.
-
-        Args:
-            document: The document with the image to transcribe
-
-        Returns:
-            Processed text
-        """
-        try:
-            output_parser = StrOutputParser()
-            # Create the prompt template with image
-            prompt = ChatPromptTemplate.from_messages([
-                ("system", IMAGE_TRANSCRIPTION_SYSTEM_PROMPT),
-                ("human", [{
-                        "type": "image",
-                        "image_url": {
-                            "url": f"data:image/png;base64,{document.page_base64}"
-                        }
-                    },
-                    {
-                        "type": "text",
-                        "text": "Transcribe the image"
-                    }]
-                ),
-            ])
-            # Create the chain
-            chain = prompt | self.llm_model | output_parser
-            # Process the image
-            result = chain.invoke({})
-            document.page_text = result
-            return document
-        except Exception as e:
-            logger.error(f"Failed to parse document page: {str(e)}")
-            raise
-
-    def _retrieve_context_chunk_in_document(self, markdown_content: str, chunk: Document, chunk_metadata: dict = None) -> ContextChunk:
-        """Retrieve context chunks in document."""
-        try:
-            chunk_output_parser = PydanticOutputParser(pydantic_object=ContextChunk)
-            # Create the prompt template with image
-            prompt = ChatPromptTemplate.from_messages([
-                ("system", CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT),
-                (
-                    "human", [{
-                        "type": "text",
-                            "text": f"Generate context for the following chunk: <chunk>{chunk.page_content}</chunk>"
-                    }]
-                ),
-            ]).partial(
-                document_content=markdown_content,
-                format_instructions=chunk_output_parser.get_format_instructions()
-            )
-            model_with_structure = self.llm_model.with_structured_output(ContextChunk)
-            # Create the chain
-            chain = prompt | model_with_structure
-            # Process the image
-            results = chain.invoke({})
-            print(chunk)
-            chunk.page_content = f"Context:{results.context}, Content:{chunk.page_content}"
-            chunk.metadata["context"] = results.context
-            if chunk_metadata:
-                for key, value in chunk_metadata.items():
-                    chunk.metadata[key] = value
-            return chunk
-
-        except Exception as e:
-            logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
-            raise
-
-
-    def retrieve_context_chunks_in_document(self, markdown_content: str, chunks: List[Document], chunks_metadata: dict = None) -> List[Document]:
-        """Retrieve context chunks in document."""
-        try:
-            context_chunks = list(map(
-                lambda chunk: self._retrieve_context_chunk_in_document(markdown_content, chunk, chunks_metadata),
-                chunks
-            ))
-            return context_chunks
-        except Exception as e:
-            logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
-            raise
-
-    # @contextmanager
-    # def model_context(self):
-    #     """
-    #     Context manager for VertexModels to ensure proper resource cleanup.
-
-    #     Example:
-    #         with vertex_models.model_context():
-    #             # Use vertex models here
-    #     """
-    #     try:
-    #         yield self
-    #     finally:
-    #         # Clean up any resources if needed
-    #         # This can be expanded based on specific cleanup requirements
-    #         logger.debug("Exiting VertexModels context")

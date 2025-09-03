@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from wizit_context_ingestor import DeelabRedisChunksManager, DeelabTranscribeManager
 import sys
+
 load_dotenv()
 
 GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID")

@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "wizit_context_ingestor"
+version = "0.2.2"
+description = "ingest data"
+authors = ["Restebance", "Jeison Patiño", "Javier Fernandez", "Daniel Quesada"]
+license = "APACHE-2.0"
+readme = "README.md"
+packages = [{ include = "wizit_context_ingestor" }]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+llama-parse = "0.5.20"
+langchain-experimental = "^0.3.4"
+langchain-google-vertexai = "^2.0.13"
+pymupdf = "^1.25.3"
+pillow = "^11.1.0"
+dotenv = "^0.9.9"
+supabase = "^2.13.0"
+vecs = "^0.4.5"
+boto3 = "^1.37.38"
+langchain-aws = "^0.2.21"
+python-dotenv = "^1.1.0"
+langchain-postgres = "^0.0.14"
+psycopg-binary = "^3.2.9"
+langchain-redis = "^0.2.3"
+anthropic = { extras = ["vertex"], version = "^0.56.0" }
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

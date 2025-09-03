@@ -1,17 +1,13 @@
 from langchain_core.documents import Document
-from typing import Dict
-# from langchain.indexes import index, SQLRecordManager
 from langchain_redis import RedisConfig, RedisVectorStore
 from typing import List
 import logging
-# from langchain_postgres import PGVectorStore, PGEngine
-from sqlalchemy import create_engine
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from wizit_context_ingestor.application.interfaces import EmbeddingsManager
-load_dotenv()
+
+# load_dotenv()
 
 logger = logging.getLogger(__name__)
-
 
 class RedisEmbeddingsManager(EmbeddingsManager):
 
@@ -47,7 +43,7 @@ class RedisEmbeddingsManager(EmbeddingsManager):
             ]+self.metadata_tags_schema,
           )
           self.vector_store = RedisVectorStore(self.embeddings_model, config=self.redis_config)
-          logger.info(f"RedisEmbeddingsManager initialized")
+          logger.info("RedisEmbeddingsManager initialized")
         except Exception as e:
           logger.error(f"Failed to initialize RedisEmbeddingsManager: {str(e)}")
           raise

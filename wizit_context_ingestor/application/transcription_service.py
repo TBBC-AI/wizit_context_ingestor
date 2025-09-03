@@ -82,7 +82,7 @@ class TranscriptionService:
         return parsed_pages, parsed_document
 
 
-    def save_parsed_document(self, file_key: str, parsed_document: ParsedDoc, file_tags: Optional[Dict[str, str]] = None):
+    def save_parsed_document(self, file_key: str, parsed_document: ParsedDoc, file_tags: Optional[Dict[str, str]] = {}):
         """
         Save the parsed document to a file.
         """
