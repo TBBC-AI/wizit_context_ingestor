@@ -79,7 +79,7 @@ class PgEmbeddingsManager:
 
         Args:
           docs: A list of LangChain Document objects to add to the vector store
-                Each Document should have page_content and metadata attributes 
+                Each Document should have page_content and metadata attributes
                 from langchain_core.documents import Document
         Returns:
           None
@@ -93,7 +93,7 @@ class PgEmbeddingsManager:
                 dimensions=12
             )
         except Exception as e:
-            logger.info(f"Indexed {len(docs)} documents in vector store")
+            logger.exception(f"Error indexing documents in vector store: {e}")
             raise
 
     def get_retriever(self, search_type: str = "mmr", k: int = 10):

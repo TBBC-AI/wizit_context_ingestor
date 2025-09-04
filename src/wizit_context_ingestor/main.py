@@ -2,7 +2,8 @@ import json
 from .infra.vertex_model import VertexModels
 from .application.transcription_service import TranscriptionService
 from .application.context_chunk_service import ContextChunksInDocumentService
-from .infra.persistence import S3StorageService, LocalStorageService
+from .infra.persistence.s3_storage import S3StorageService
+from .infra.persistence.local_storage import LocalStorageService
 from .infra.rag.semantic_chunks import SemanticChunks
 from .infra.rag.redis_embeddings import RedisEmbeddingsManager
 from .infra.secrets.aws_secrets_manager import AwsSecretsManager

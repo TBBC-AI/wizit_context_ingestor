@@ -3,7 +3,6 @@ from ...domain.models import ParsedDoc
 import boto3
 import logging
 import os
-import inspect
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
@@ -101,7 +100,7 @@ class S3StorageService(PersistenceService):
                     Body=content_bytes
                 )
             else:
-                tagging_string = f"&".join([f"{key}={value}" for key, value in file_tags.items()])
+                tagging_string = "&".join([f"{key}={value}" for key, value in file_tags.items()])
                 self.s3.put_object(
                     Bucket=self.target_bucket_name,
                     Key=file_key,

@@ -6,7 +6,7 @@ import logging
 from typing import List, Any
 from langchain_core.documents import Document
 from langchain_experimental.text_splitter import SemanticChunker
-from wizit_context_ingestor.application.interfaces import RagChunker
+from ...application.interfaces import RagChunker
 
 logger = logging.getLogger(__name__)
 

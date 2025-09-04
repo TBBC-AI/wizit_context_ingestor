@@ -3,7 +3,7 @@ from langchain_redis import RedisConfig, RedisVectorStore
 from typing import List
 import logging
 # from dotenv import load_dotenv
-from wizit_context_ingestor.application.interfaces import EmbeddingsManager
+from ...application.interfaces import EmbeddingsManager
 
 # load_dotenv()
 

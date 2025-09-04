@@ -1,10 +1,11 @@
 [project]
-name = "wizit-context-ingestor-open"
-version = "0.1.0"
+name = "wizit_context_ingestor"
+version = "0.2.3-beta"
 description = "Contextual Rag with Cloud Solutions"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "anthropic[vertex]>=0.66.0",
     "boto3>=1.40.23",
     "langchain-aws>=0.2.31",
     "langchain-experimental>=0.3.4",
@@ -18,3 +19,7 @@ dependencies = [
 dev = [
     "python-dotenv>=1.1.1",
 ]
+
+[build-system]
+requires = ["uv_build>=0.8.15,<0.9.0"]
+build-backend = "uv_build"

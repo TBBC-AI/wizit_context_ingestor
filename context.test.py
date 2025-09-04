@@ -1,17 +1,11 @@
 import json
 import os
-
 from dotenv import load_dotenv
-load_dotenv()
-
-from langchain_google_vertexai import VertexAIEmbeddings, ChatVertexAI
-from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
-from langchain_core.output_parsers.pydantic import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.documents import Document
+from src.wizit_context_ingestor.infra.vertex_model import VertexModels
+from src.wizit_context_ingestor.infra.persistence.local_storage import LocalStorageService
 
-from wizit_context_ingestor.infra.vertex_model import VertexModels
-from wizit_context_ingestor.infra.persistence import S3StorageService, LocalStorageService, SupabaseStoreService
+load_dotenv()
 
 GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
 GCP_PROJECT_LOCATION ="us-central1"# os.environ.get("GCP_PROJECT_LOCATION")

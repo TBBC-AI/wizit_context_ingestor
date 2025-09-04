@@ -59,7 +59,7 @@ class PgEmbeddingsManager(EmbeddingsManager):
         self.record_manager = None
         try:
           self.pg_engine = PGEngine.from_connection_string(url=pg_connection)
-          logger.info(f"PgEmbeddingsManager initialized")
+          logger.info("PgEmbeddingsManager initialized")
         except Exception as e:
             logger.error(f"Failed to initialize PgEmbeddingsManager: {str(e)}")
             raise

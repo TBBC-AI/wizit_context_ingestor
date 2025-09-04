@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from wizit_context_ingestor import DeelabRedisChunksManager, DeelabTranscribeManager
+from src.wizit_context_ingestor import DeelabRedisChunksManager, DeelabTranscribeManager
 import sys
 
 load_dotenv()
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     operation = sys.argv[1]
     file_name = sys.argv[2]
 
-    if file_name == None:
+    if file_name is None:
         file_name = "TBBC-2025.pdf.md"
 
     if operation == "transcribe":
