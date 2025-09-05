@@ -1,4 +1,4 @@
-import vertexai
+from vertexai import init as vertexai_init
 from google.oauth2 import service_account
 from langchain_google_vertexai import VertexAIEmbeddings, ChatVertexAI
 from langchain_google_vertexai.model_garden import ChatAnthropicVertex
@@ -15,7 +15,7 @@ class VertexModels(AiApplicationService):
     A wrapper class for Google Cloud Vertex AI models that handles credentials and
     provides methods to load embeddings and chat models.
     """
-
+    __slots__ = ('project_id', 'location', 'json_service_account', 'scopes', 'llm_model_id')
     def __init__(
             self,
             project_id: str,
@@ -42,7 +42,7 @@ class VertexModels(AiApplicationService):
             self.llm_model_id = llm_model_id
             self.project_id = project_id
             self.location = location
-            vertexai.init(
+            vertexai_init(
                 project=project_id,
                 location=location,
                 credentials=self.credentials

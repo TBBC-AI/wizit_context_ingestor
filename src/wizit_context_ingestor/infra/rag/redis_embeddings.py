@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class RedisEmbeddingsManager(EmbeddingsManager):
 
+    __slots__ = ("embeddings_model", "redis_conn_string", "metadata_tags")
     def __init__(self, embeddings_model, redis_conn_string: str, metadata_tags: dict):
         """
         Initialize the RedisEmbeddingsManager.

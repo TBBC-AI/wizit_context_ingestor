@@ -1,6 +1,6 @@
 from ...application.interfaces import PersistenceService
 from ...domain.models import ParsedDoc
-import boto3
+from boto3 import client as boto3_client
 import logging
 import os
 from botocore.exceptions import ClientError
@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 
 class S3StorageService(PersistenceService):
     """Persistence service for S3 storage."""
-
+    __slots__ = ('origin_bucket_name', 'target_bucket_name', 'region_name')
     def __init__(self, origin_bucket_name: str, target_bucket_name: str, region_name: str = 'us-east-1'):
-        self.s3 = boto3.client('s3', region_name=region_name)
+        self.s3 = boto3_client('s3', region_name=region_name)
         self.origin_bucket_name = origin_bucket_name
         self.target_bucket_name = target_bucket_name
 

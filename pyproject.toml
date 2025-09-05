@@ -17,6 +17,8 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "memray>=1.18.0",
+    "pyinstrument>=5.1.1",
     "python-dotenv>=1.1.1",
 ]
 

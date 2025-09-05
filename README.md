@@ -64,6 +64,14 @@ from main import context_chunks_in_document
 # Get semantic chunks from a document
 context_chunks_in_document("your-document.pdf")
 ```
+## Running Memory Profiler
+
+To run the memory profiler, use the following command:
+
+```bash
+python -m memray run test_redis.py
+```
+
 
 ## Project Structure
 

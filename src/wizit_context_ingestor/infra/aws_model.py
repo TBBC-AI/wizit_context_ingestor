@@ -12,7 +12,7 @@ class AWSModels(AiApplicationService):
     A wrapper class for Google Cloud Vertex AI models that handles credentials and
     provides methods to load embeddings and chat models.
     """
-
+    __slots__ = ('llm_model_id')
     def __init__(
         self,
         llm_model_id: str = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"

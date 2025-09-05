@@ -38,7 +38,7 @@ class PgEmbeddingsManager(EmbeddingsManager):
       ... )
       >>> documents = [Document(page_content="Sample text", metadata={"source": "example"})]
     """
-
+    __slots__ = ("embeddings_model", "pg_connection")
     def __init__(self, embeddings_model, pg_connection: str):
         """
           Initialize the PgEmbeddingsManager.

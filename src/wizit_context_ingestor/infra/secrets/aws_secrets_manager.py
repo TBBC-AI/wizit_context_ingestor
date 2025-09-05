@@ -1,4 +1,4 @@
-import boto3
+from boto3 import client as boto3_client
 import logging
 
 logger = logging.getLogger(__name__)
@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 class AwsSecretsManager:
 
     def __init__(self):
-        self.client = boto3.client('secretsmanager')
+        self.client = boto3_client('secretsmanager')
 
 
     def get_secret(self, secret_name):

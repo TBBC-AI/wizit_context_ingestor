@@ -16,7 +16,7 @@ class SemanticChunks(RagChunker):
     Class for semantically chunking documents into smaller pieces based on semantic similarity.
     Uses LangChain's SemanticChunker to create semantically coherent document chunks.
     """
-
+    __slots__ = ("embeddings_model",)
     def __init__(self, embeddings_model: Any):
         """
         Initialize a document chunker with an embeddings model.
