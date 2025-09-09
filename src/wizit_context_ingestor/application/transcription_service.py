@@ -56,6 +56,12 @@ class TranscriptionService:
                 # Create the chain
                 chain = prompt | model_with_structured_output
                 # Process the image
+                chain = chain.with_retry(
+                    stop_after_attempt=3,
+                    exponential_jitter_params={
+                        "initial": 60
+                    }
+                )
                 result = chain.invoke({})
                 if result.transcription:
                     document.page_text = result.transcription
