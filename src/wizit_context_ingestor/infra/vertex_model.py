@@ -54,7 +54,7 @@ class VertexModels(AiApplicationService):
 
     def load_embeddings_model(
         self,
-        embeddings_model_id: str = "text-embedding-005") -> VertexAIEmbeddings:  # noqa: E125
+        embeddings_model_id: str = "text-multilingual-embedding-002") -> VertexAIEmbeddings:  # noqa: E125
         """
         Load and return a Vertex AI embeddings model.
         default embeddings length is 768 https://cloud.google.com/vertex-ai/generative-ai/docs/embeddings/get-text-embeddings

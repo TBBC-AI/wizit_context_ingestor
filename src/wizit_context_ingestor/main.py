@@ -78,6 +78,7 @@ class DeelabRedisChunksManager:
             gcp_secret_name: str,
             redis_connection_string: str,
             llm_model_id: str = "claude-3-5-haiku@20241022",
+            embeddings_model_id: str = "text-multilingual-embedding-002",
             target_language: str = "es"
     ):
         self.gcp_project_id = gcp_project_id
@@ -89,7 +90,7 @@ class DeelabRedisChunksManager:
         self.gcp_sa_dict = self._get_gcp_sa_dict(gcp_secret_name)
         self.redis_connection_string = redis_connection_string
         self.vertex_model = self._get_vertex_model()
-        self.embeddings_model = self.vertex_model.load_embeddings_model()
+        self.embeddings_model = self.vertex_model.load_embeddings_model(embeddings_model_id)
 
     def _get_gcp_sa_dict(self, gcp_secret_name: str):
         vertex_gcp_sa = self.aws_secrets_manager.get_secret(gcp_secret_name)
