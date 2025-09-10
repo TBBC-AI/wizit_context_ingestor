@@ -1,7 +1,7 @@
 import base64
 import logging
 import io
-import fitz
+import pymupdf
 from PIL import Image
 from typing import List
 from ..domain.models import ParsedDocPage, ParsedDoc
@@ -17,25 +17,25 @@ class ParseDocModelService():
     def __init__(self, file_path: str):
         """
         Initialize a PDF document parser.
-        
+
         Args:
             file_path: Path to the PDF file to parse
         """
         self.file_path = file_path
-        self.pdf_document = fitz.open(file_path)
+        self.pdf_document = pymupdf.open(file_path)
         self.page_count = self.pdf_document.page_count
 
-    
+
     def pdf_page_to_base64(self, page_number: int) -> ParsedDocPage:
         """
         Convert a PDF page to a base64-encoded PNG image.
-        
+
         Args:
             page_number: One-indexed page number to convert
-            
+
         Returns:
             Base64 encoded string of the page image
-            
+
         Raises:
             Exception: If there's an error during conversion
         """
@@ -49,7 +49,7 @@ class ParseDocModelService():
             b64_encoded_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
             logger.info(f"Page {page_number} encoded successfully")
             return ParsedDocPage(
-                page_number=page_number, 
+                page_number=page_number,
                 page_base64=b64_encoded_image
             )
         except Exception as e:
@@ -59,15 +59,15 @@ class ParseDocModelService():
     def parse_document_to_base64(self) -> List[ParsedDocPage]:
         """
         Convert all pages in the PDF document to base64-encoded images.
-        
+
         Returns:
             List of base64 encoded strings for each page
-            
+
         Raises:
             Exception: If there's an error during conversion
         """
         # BASE DE DATOS SINTETICOS DE PREGUNTAS Y RESPUESTAS SOBRE EL DOCUMENTO, FINE TUNING PARA EL LLM
-        # GEMMA 2 --> DATASET DE PREGUNTAS Y RESPUESTAS SOBRE EL DOCUMENTO 
+        # GEMMA 2 --> DATASET DE PREGUNTAS Y RESPUESTAS SOBRE EL DOCUMENTO
         # RAG --> FINETUNING AUTOMATICO / CONSULTAR EL MODELO
         # OPENAI --> PREGUNTAS Y RESPUESTAS SOBRE EL DOCUMENTO
         # COLAB --> PREGUNTAS Y RESPUESTAS SOBRE EL DOCUMENTO
@@ -95,4 +95,4 @@ class ParseDocModelService():
             document_text=md_content
         )
 
-    # def 
+    # def

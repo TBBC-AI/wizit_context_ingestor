@@ -4,7 +4,7 @@ from langchain_core.output_parsers import StrOutputParser
 import base64
 import logging
 import io
-import fitz
+import pymupdf
 from PIL import Image
 from typing import List, Any
 from dotenv import load_dotenv
@@ -23,13 +23,13 @@ class ParseDoc:
     def __init__(self, file_path: str, system_prompt, chat_model: Any):
         """
         Initialize a PDF document parser.
-        
+
         Args:
             file_path: Path to the PDF file to parse
             chat_model: Language model for processing document content
         """
         self.file_path = file_path
-        self.pdf_document = fitz.open(file_path)
+        self.pdf_document = pymupdf.open(file_path)
         self.page_count = self.pdf_document.page_count
         self.system_prompt = system_prompt
         self.chat_model = chat_model
@@ -37,13 +37,13 @@ class ParseDoc:
     def pdf_page_to_base64(self, page_number: int) -> str:
         """
         Convert a PDF page to a base64-encoded PNG image.
-        
+
         Args:
             page_number: One-indexed page number to convert
-            
+
         Returns:
             Base64 encoded string of the page image
-            
+
         Raises:
             Exception: If there's an error during conversion
         """
@@ -69,10 +69,10 @@ class ParseDoc:
     def parse_document_to_base64(self) -> List[str]:
         """
         Convert all pages in the PDF document to base64-encoded images.
-        
+
         Returns:
             List of base64 encoded strings for each page
-            
+
         Raises:
             Exception: If there's an error during conversion
         """
@@ -90,14 +90,14 @@ class ParseDoc:
     def parse_with_llm(self, base_64_image: str, prompt: str) -> AIMessage:
         """
         Process a base64-encoded image with a language model using the provided prompt.
-        
+
         Args:
             base_64_image: Base64 encoded image string
             prompt: Text prompt to send with the image
-            
+
         Returns:
             Language model response
-            
+
         Raises:
             Exception: If there's an error during processing
         """
