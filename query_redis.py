@@ -18,7 +18,7 @@ gcp_sa_path = os.path.join(os.path.dirname(__file__), "credentials", "gcp_sa.jso
 credentials = service_account.Credentials.from_service_account_file(gcp_sa_path)
 # Initialize the embeddings model
 embeddings_model = VertexAIEmbeddings(
-    model_name="text-embedding-004",
+    model_name="text-multilingual-embedding-002",
     credentials= credentials
 )
 
@@ -40,9 +40,7 @@ if __name__ == "__main__":
     # Add documents to the Redis vector store
     query = "Como potencia la infra en la nube?"
     filter_condition = Tag("id") == "id"
-    results = vector_store.similarity_search(query, k=2, filter=filter_condition)
+    results = vector_store.similarity_search_with_score(query, k=2, filter=filter_condition)
     print(len(results))
     for doc in results:
-        print(f"* {doc.page_content} [{doc.metadata}]") 
-
-
+        print(f"* {doc.page_content} [{doc.metadata}]")
