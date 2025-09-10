@@ -37,7 +37,6 @@ class AWSModels(AiApplicationService):
         temperature: float = 0.7,
         max_tokens: int = 8000,
         region_name: str = "us-east-1") -> ChatBedrockConverse:
-
         """
         Load an AWS AI chat model for text generation.
 

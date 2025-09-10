@@ -1,6 +1,6 @@
 [project]
 name = "wizit_context_ingestor"
-version = "0.2.4"
+version = "0.2.5-beta-1"
 description = "Contextual Rag with Cloud Solutions"
 readme = "README.md"
 requires-python = ">=3.12"
