@@ -113,8 +113,11 @@ class DeelabRedisChunksManager:
         try:
             rag_chunker = SemanticChunks(self.embeddings_model)
             redis_embeddings_manager = RedisEmbeddingsManager(
-                embeddings_model=self.embeddings_model,
-                redis_connection_string=self.redis_connection_string
+                self.embeddings_model,
+                self.redis_connection_string,
+                {
+                    "file_key": file_key
+                }
             )
             local_persistence_service = LocalStorageService()
             context_chunks_in_document_service = ContextChunksInDocumentService(

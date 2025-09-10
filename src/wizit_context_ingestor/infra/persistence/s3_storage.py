@@ -4,6 +4,7 @@ from boto3 import client as boto3_client
 import logging
 import os
 from botocore.exceptions import ClientError
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -77,8 +78,7 @@ class S3StorageService(PersistenceService):
             raise
 
 
-
-    def save_parsed_document(self, file_key: str, parsed_document: ParsedDoc, file_tags: dict = {}):
+    def save_parsed_document(self, file_key: str, parsed_document: ParsedDoc, file_tags: Optional[dict] = {}):
         """Save a parsed document to S3.
 
         Args:

@@ -1,5 +1,6 @@
 from ...application.interfaces import PersistenceService
 from ...domain.models import ParsedDoc
+from typing import Optional
 import logging
 import os
 logger = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ class LocalStorageService(PersistenceService):
             raise
 
 
-    def save_parsed_document(self, file_key: str, parsed_document: ParsedDoc):
+    def save_parsed_document(self, file_key: str, parsed_document: ParsedDoc, file_tags: Optional[dict] = {}):
         """Save a parsed document."""
         with open(f"{self.tmp_folder}/{file_key}", "w", encoding="utf-8") as f:
             f.write(parsed_document.document_text)
