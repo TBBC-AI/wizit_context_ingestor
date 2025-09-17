@@ -92,7 +92,7 @@ class EmbeddingsManager(ABC):
         pass
 
     @abstractmethod
-    def index_documents(self, documents: List[Document]):
+    def index_documents(self, documents: list[Document]):
         """Index documents."""
         pass
 
