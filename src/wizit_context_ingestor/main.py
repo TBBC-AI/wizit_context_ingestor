@@ -14,8 +14,9 @@ class DeelabTranscribeManager:
         gcp_project_id: str,
         gcp_project_location: str,
         gcp_secret_name: str,
-        llm_model_id: str = "claude-3-5-sonnet-v2@20241022",
+        llm_model_id: str = "claude-sonnet-4@20250514",
         target_language: str = 'es',
+        transcription_additional_instructions: str = ''
     ):
         self.gcp_project_id = gcp_project_id
         self.gcp_project_location = gcp_project_location
@@ -23,6 +24,7 @@ class DeelabTranscribeManager:
         self.gcp_secret_name = gcp_secret_name
         self.llm_model_id = llm_model_id
         self.target_language = target_language
+        self.transcription_additional_instructions = transcription_additional_instructions
         self.gcp_sa_dict = self._get_gcp_sa_dict(gcp_secret_name)
         self.vertex_model = self._get_vertex_model()
 
@@ -55,7 +57,8 @@ class DeelabTranscribeManager:
             transcribe_document_service = TranscriptionService(
                 ai_application_service=self.vertex_model,
                 persistence_service=s3_persistence_service,
-                target_language=self.target_language
+                target_language=self.target_language,
+                transcription_additional_instructions=self.transcription_additional_instructions
             )
             parsed_pages, parsed_document = transcribe_document_service.process_document(file_key)
             origin_bucket_file_tags = s3_persistence_service.retrieve_file_tags(file_key, s3_origin_bucket_name)

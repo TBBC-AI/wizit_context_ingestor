@@ -22,6 +22,7 @@ TRANSCRIPTION RULES:
    - Include: footnotes, page numbers, bullet points, lists, captions
    - Preserve: bold, italic, underlined, and other text formatting using markdown
    - Mark unclear text as [unclear] or [illegible] with best guess in brackets
+    - Enclose all underlined content in <UnderlinedContent></UnderlinedContent> tags
 
 2. LANGUAGE REQUIREMENTS:
    - All transcribed content MUST be in the document's primary language
@@ -70,8 +71,14 @@ CRITICAL REMINDERS:
 - Maintain professional transcription standards
 - Complete transcription is mandatory
 
+<additional_instructions>
+    {transcription_additional_instructions}
+</additional_instructions>
+
+
 Generate the optimized transcription following these specifications:
 {format_instructions}
+
 
 """
 

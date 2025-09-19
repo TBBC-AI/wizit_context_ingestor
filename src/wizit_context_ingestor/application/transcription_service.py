@@ -19,11 +19,13 @@ class TranscriptionService:
         self,
         ai_application_service: AiApplicationService,
         persistence_service: PersistenceService,
-        target_language: str = 'es'
+        target_language: str = 'es',
+        transcription_additional_instructions: str = ''
     ):
         self.ai_application_service = ai_application_service
         self.persistence_service = persistence_service
         self.target_language = target_language
+        self.transcription_additional_instructions = transcription_additional_instructions
         self.chat_model = self.ai_application_service.load_chat_model()
 
     def parse_doc_page(self, document: ParsedDocPage) -> ParsedDocPage:
@@ -50,6 +52,7 @@ class TranscriptionService:
                         }]
                     ),
                 ]).partial(
+                    transcription_additional_instructions=self.transcription_additional_instructions,
                     format_instructions=transcription_output_parser.get_format_instructions()
                 )
                 model_with_structured_output = self.chat_model.with_structured_output(Transcription)

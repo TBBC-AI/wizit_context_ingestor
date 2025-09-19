@@ -33,7 +33,13 @@ if __name__ == '__main__':
             deelab_transcribe_manager = DeelabTranscribeManager(
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
-                gcp_secret_name
+                gcp_secret_name,
+                transcription_additional_instructions="""
+                    - HIGHLIGHTED CONTENT DETECTION:\n
+                        - Wrap all highlighted content with <highlighted_content> tags.\n
+                        - For tables with highlighted content, only column names must be wrapped in <highlighted_content> tags.\n
+                        - Maintain the original order and formatting of the content.
+                """
             )
 
             deelab_transcribe_manager.aws_cloud_transcribe_document(
