@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 
 class ChromaEmbeddingsManager(EmbeddingsManager):
 
-    __slots__ = ("embeddings_model", "chroma_host", "collection_name", "metadata_tags")
+    __slots__ = ("embeddings_model", "collection_name", "metadata_tags")
     def __init__(
         self,
         embeddings_model,
-        chroma_host,
-        collection_name: str,
-        metadata_tags: dict
+        metadata_tags: dict,
+        chroma_host=None,
+        **chroma_conn_kwargs
     ):
         """
         Initialize the ChromaEmbeddingsManager.
@@ -27,13 +27,11 @@ class ChromaEmbeddingsManager(EmbeddingsManager):
             embeddings_model: The embeddings model to use for generating vector embeddings
                               (typically a LangChain embeddings model instance)
             chroma_host: The Chroma host URL
-            collection_name: The Chroma collection name
             metadata_tags: Tags to add as metadata to Chroma vector store
 
         Raises:
             Exception: If there's an error initializing the RedisEmbeddingsManager
         """
-        self.collection_name = collection_name
         self.embeddings_model = embeddings_model
         self.chroma_host = chroma_host
         self.metadata_tags_schema = []
@@ -45,12 +43,19 @@ class ChromaEmbeddingsManager(EmbeddingsManager):
           })
 
         try:
-            self.chroma = Chroma(
-                collection_name=self.collection_name,
-                embedding_function=self.embeddings_model,
-                host=self.chroma_host,
-            )
-            logger.info("ChromaEmbeddingsManager initialized")
+            if chroma_host:
+                self.chroma = Chroma(
+                    embedding_function=self.embeddings_model,
+                    host=chroma_host,
+                    **chroma_conn_kwargs
+                )
+                logger.info("ChromaEmbeddingsManager initialized")
+            else:
+                self.chroma = Chroma(
+                    embedding_function=self.embeddings_model,
+                    **chroma_conn_kwargs
+                )
+                logger.info("ChromaEmbeddingsManager initialized")
         except Exception as e:
           logger.error(f"Failed to initialize ChromaEmbeddingsManager: {str(e)}")
           raise
