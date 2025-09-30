@@ -1,3 +1,5 @@
+from posix import fork
+
 # check this documentation
 # https://python.langchain.com/docs/how_to/semantic-chunker/
 # https://github.com/FullStackRetrieval-com/RetrievalTutorials/blob/main/tutorials/LevelsOfTextSplitting/5_Levels_Of_Text_Splitting.ipynb
@@ -16,7 +18,9 @@ class SemanticChunks(RagChunker):
     Class for semantically chunking documents into smaller pieces based on semantic similarity.
     Uses LangChain's SemanticChunker to create semantically coherent document chunks.
     """
+
     __slots__ = ("embeddings_model",)
+
     def __init__(self, embeddings_model: Any):
         """
         Initialize a document chunker with an embeddings model.
@@ -35,7 +39,7 @@ class SemanticChunks(RagChunker):
             add_start_index=True,
             breakpoint_threshold_type="percentile",
             breakpoint_threshold_amount=95,
-            min_chunk_size=200
+            min_chunk_size=200,
         )
 
     def gen_chunks_for_document(self, document: Document) -> List[Document]:
@@ -53,6 +57,10 @@ class SemanticChunks(RagChunker):
         """
         try:
             chunks = self.text_splitter.split_documents([document])
+            source = document.metadata["source"]
+            for i, chunk in enumerate(chunks):
+                if document.metadata["source"]:
+                    chunk.id = f"{source}-{i}"
             logger.info(f"{len(chunks)} chunks generated successfully")
             return chunks
         except Exception as e:
