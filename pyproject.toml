@@ -12,6 +12,7 @@ dependencies = [
     "langchain-experimental>=0.3.4",
     "langchain-google-vertexai>=2.0.28",
     "langchain-redis>=0.2.3",
+    "langgraph>=0.6.8",
     "pillow>=11.3.0",
     "pymupdf>=1.26.4",
 ]

@@ -1,5 +1,83 @@
 from pydantic import BaseModel, Field
 
+AGENT_TRANSCRIPTION_SYSTEM_PROMPT = """
+    You are an expert document transcription assistant. Your task is to transcribe the exact text from the provided document with extreme accuracy while organizing the output using markdown formatting.
+    OBJECTIVE: Create a complete, accurate transcription that preserves the original document's content, structure, and formatting.
+    TRANSCRIPTION RULES:
+    <rules>
+    1. document's languages must be detected to ensure correct transcription
+    2. Systematically examine each page element (text, images, tables, formatting)
+    3. Convert all content to markdown while preserving structure and meaning
+    5. Verify completeness and accuracy of the transcription
+    6. TEXT TRANSCRIPTION:
+    - Transcribe all visible text exactly as it appears
+    - Include: paragraphs, headings, subheadings, headers, footers
+    - Include: footnotes, page numbers, bullet points, lists, captions
+    - Preserve: bold, italic, underlined, and other text formatting using markdown
+    - Mark unclear text as [unclear] or [illegible] with best guess in brackets
+        - Enclose all underlined content in <UnderlinedContent></UnderlinedContent> tags
+
+    7. LANGUAGE REQUIREMENTS:
+    - Transcribed content MUST preserve document's language
+    - Translate any secondary language content to maintain consistency
+
+    3. COMPLETENESS:
+    - Transcribe the entire document - no partial transcriptions
+    - Never summarize, modify, or generate additional content
+    - Maintain original meaning and context
+
+    4. FORMATTING STANDARDS:
+    - Use proper markdown syntax for structure
+    - Avoid blank lines in transcription
+    - Exclude logos, watermarks, and decorative icons
+    - Omit special characters that interfere with markdown
+
+    5. IMAGE HANDLING:
+    <image_transcription_rules>
+    - Extract and transcribe any text within images
+    - For data-rich images: create markdown tables when applicable
+    - For other images: provide descriptive content summaries
+    - Classify each visual element as: Chart, Diagram, Natural Image, Screenshot, or Other
+    - Format: <figure_type>Classification</figure_type>
+    - Wrap content in <figure></figure> tags with title/caption if available
+    </image_transcription_rules>
+
+    6. TABLE PROCESSING:
+    <tables_transcription_rules>
+    - Convert all tables to proper markdown table format
+    - Preserve cell alignment and structure as closely as possible
+    - Maintain data relationships and hierarchy
+    - Include table headers and formatting
+    </tables_transcription_rules>
+
+    7. QUALITY ASSURANCE:
+    - Verify all content is in the primary language
+    - Ensure no content is omitted or added
+    - Check markdown formatting is correct
+    - Confirm structural integrity is maintained
+    </rules>
+
+    CRITICAL REMINDERS:
+    - Accuracy over speed - every character matters
+    - Preserve original document intent and meaning
+    - Maintain professional transcription standards
+    - Complete transcription is mandatory
+
+    <additional_instructions>
+        {transcription_additional_instructions}
+    </additional_instructions>
+"""
+
+IMAGE_TRANSCRIPTION_CHECK_SYSTEM_PROMPT = """
+You are an expert document transcription grader . Your task is to evaluate how well the following transcription has been made based on the conversation.
+OBJECTIVE: Provide an accurate evaluation of the transcription, ensuring quality, completeness and accuracy.
+Evaluate the transcription based on the following conversation which includes the image of the page to be transcribed.
+<transcription>
+    {transcription}
+</transcription>
+"""
+
+
 IMAGE_TRANSCRIPTION_SYSTEM_PROMPT = """
 You are an expert document transcription assistant. Your task is to transcribe the exact text from the provided document with extreme accuracy while organizing the output using markdown formatting.
 
@@ -78,8 +156,6 @@ CRITICAL REMINDERS:
 
 Generate the optimized transcription following these specifications:
 {format_instructions}
-
-
 """
 
 CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT = """
@@ -139,10 +215,15 @@ Generate the optimized context following these specifications:
 {format_instructions}
 """
 
+
 class ContextChunk(BaseModel):
-    context: str = Field(description="Context description that helps with search retrieval")
+    context: str = Field(
+        description="Context description that helps with search retrieval"
+    )
+
 
 class Transcription(BaseModel):
     """Document Transcription."""
+
     transcription: str = Field(description="Full transcription")
     language: str = Field(description="Main language")
