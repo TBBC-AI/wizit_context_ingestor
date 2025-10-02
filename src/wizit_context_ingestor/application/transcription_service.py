@@ -36,7 +36,7 @@ class TranscriptionService:
             raise ValueError(
                 "transcription_accuracy_threshold must be between 0 and 95"
             )
-        if max_transcription_retries < 1 and max_transcription_retries > 3:
+        if max_transcription_retries < 1 or max_transcription_retries > 3:
             raise ValueError(
                 "max_transcription_retries must be between 1 and 3 to prevent token exhaustion"
             )
