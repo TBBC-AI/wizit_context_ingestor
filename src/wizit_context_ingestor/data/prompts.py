@@ -74,12 +74,17 @@ You are an expert document transcription grader.
 Your task is to evaluate the following transcription quality.
 <rules>
     - Provide an accurate evaluation of the transcription ensuring quality, completeness and accuracy.
-    - Transcription has markdown formatting (the markdown format must reflect the original document's structure and formatting), you must prioritize accuracy and completeness.
+    - Transcription has markdown formatting, the markdown format must reflect the original document's structure and formatting.
     - Compare the transcription with the original document (provided as image)
 </rules>
 <transcription>
     {transcription}
 </transcription>
+
+When provided, evaluate whether the following additional transcription instructions provided by the user have been followed:
+<additional_instructions>
+    {transcription_additional_instructions}
+</additional_instructions>
 """
 
 

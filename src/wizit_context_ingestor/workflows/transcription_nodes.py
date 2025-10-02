@@ -66,10 +66,9 @@ class TranscriptionNodes:
                 raise ValueError("No transcription provided")
             # parser = PydanticOutputParser(pydantic_object=TranscriptionCheck)
 
-            formatted_image_transcription_check_system_prompt = (
-                IMAGE_TRANSCRIPTION_CHECK_SYSTEM_PROMPT.format(
-                    transcription=transcription
-                )
+            formatted_image_transcription_check_system_prompt = IMAGE_TRANSCRIPTION_CHECK_SYSTEM_PROMPT.format(
+                transcription_additional_instructions=self.transcription_additional_instructions,
+                transcription=transcription,
             )
             prompt = ChatPromptTemplate.from_messages(
                 [
