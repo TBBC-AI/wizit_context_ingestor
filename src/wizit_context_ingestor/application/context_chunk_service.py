@@ -2,6 +2,8 @@ from langchain_core.output_parsers.pydantic import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.documents import Document
 from ..data.prompts import CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT, ContextChunk
+from langchain_core.messages.human import HumanMessage
+from ..workflows.context_workflow import ContextWorkflow
 from typing import Dict, Any, Optional, List
 from .interfaces import (
     AiApplicationService,
@@ -38,6 +40,50 @@ class ContextChunksInDocumentService:
         self.target_language = target_language
         self.embeddings_manager.init_vector_store()
         self.chat_model = self.ai_application_service.load_chat_model()
+        # TODO
+        self.context_additional_instructions = ""
+
+    def _retrieve_context_chunk_in_document_with_workflow(
+        self,
+        workflow,
+        markdown_content: str,
+        chunk: Document,
+        chunk_metadata: Optional[Dict[str, Any]] = None,
+    ) -> Document:
+        """Retrieve context chunks in document."""
+        try:
+            result = workflow.invoke(
+                {
+                    "messages": [
+                        HumanMessage(
+                            content=[
+                                {
+                                    "type": "text",
+                                    "text": f"Retrieve a complete context for the following chunk: <chunk>{chunk.page_content}</chunk>,  ensure all content chunks are generated with the same document's language.",
+                                },
+                            ]
+                        )
+                    ],
+                    "document_content": markdown_content,
+                },
+                {
+                    "configurable": {
+                        "transcription_accuracy_threshold": 0.95,
+                        "max_transcription_retries": 2,
+                    }
+                },
+            )
+            # chunk.page_content = (
+            #     f"Context:{result['context']}, Content:{chunk.page_content}"
+            # )
+            chunk.metadata["context"] = result["context"]
+            if chunk_metadata:
+                for key, value in chunk_metadata.items():
+                    chunk.metadata[key] = value
+            return chunk
+        except Exception as e:
+            logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
+            raise
 
     def _retrieve_context_chunk_in_document(
         self,
@@ -107,6 +153,35 @@ class ContextChunksInDocumentService:
             logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
             raise
 
+    def retrieve_context_chunks_in_document_with_workflow(
+        self,
+        markdown_content: str,
+        chunks: List[Document],
+        chunks_metadata: Optional[Dict[str, Any]] = None,
+    ) -> List[Document]:
+        """Retrieve context chunks in document."""
+        try:
+            context_workflow = ContextWorkflow(
+                self.chat_model, self.context_additional_instructions
+            )
+            compiled_context_workflow = context_workflow.gen_workflow()
+            compiled_context_workflow = compiled_context_workflow.compile()
+            context_chunks = list(
+                map(
+                    lambda chunk: self._retrieve_context_chunk_in_document_with_workflow(
+                        compiled_context_workflow,
+                        markdown_content,
+                        chunk,
+                        chunks_metadata,
+                    ),
+                    chunks,
+                )
+            )
+            return context_chunks
+        except Exception as e:
+            logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
+            raise
+
     def get_context_chunks_in_document(self, file_key: str, file_tags: dict = {}):
         """
         Get the context chunks in a document.
@@ -123,7 +198,7 @@ class ContextChunksInDocumentService:
             logger.info(f"Document loaded:{file_key}")
             chunks = self.rag_chunker.gen_chunks_for_document(langchain_rag_document)
             logger.info(f"Chunks generated:{len(chunks)}")
-            context_chunks = self.retrieve_context_chunks_in_document(
+            context_chunks = self.retrieve_context_chunks_in_document_with_workflow(
                 markdown_content, chunks, file_tags
             )
             logger.info(f"Context chunks generated:{len(context_chunks)}")
