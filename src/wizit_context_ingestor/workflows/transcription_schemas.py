@@ -17,9 +17,9 @@ class TranscriptionCheck(BaseModel):
     )
 
     transcription_accuracy: float = Field(
-        description="transcription accuracy",
+        description="transcription accuracy from 0.0 to 1.0",
     )
 
-    transcription_accuracy_notes: str = Field(
+    transcription_notes: str = Field(
         description="why is a correct transcription or not, why transcription accuracy is not 100%",
     )

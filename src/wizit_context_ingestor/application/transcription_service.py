@@ -58,7 +58,7 @@ class TranscriptionService:
                             },
                             {
                                 "type": "text",
-                                "text": f"Transcribe the document, ensure all content transcribed is using '{self.target_language}' language",
+                                "text": "Transcribe the document, ensure all content transcribed accurately",
                             },
                         ],
                     ),
@@ -93,7 +93,9 @@ class TranscriptionService:
         Returns:
             Processed text
         """
-        transcription_workflow = TranscriptionWorkflow(self.chat_model)
+        transcription_workflow = TranscriptionWorkflow(
+            self.chat_model, self.transcription_additional_instructions
+        )
         compiled_transcription_workflow = transcription_workflow.gen_workflow()
         compiled_transcription_workflow = compiled_transcription_workflow.compile()
         result = compiled_transcription_workflow.invoke(
@@ -103,7 +105,7 @@ class TranscriptionService:
                         content=[
                             {
                                 "type": "text",
-                                "text": f"Transcribe the document, ensure all content transcribed is using '{self.target_language}' language",
+                                "text": "Transcribe the document, ensure all content transcribed accurately. transcription must be in the same language as the document.",
                             },
                         ]
                     ),
@@ -119,8 +121,17 @@ class TranscriptionService:
                     ),
                 ]
             },
+            {
+                "configurable": {
+                    "transcription_accuracy_threshold": 0.95,
+                    "max_transcription_retries": 2,
+                }
+            },
         )
-        breakpoint()
+        if result["transcription"]:
+            document.page_text = result["transcription"]
+        else:
+            raise ValueError("No transcription found")
         return document
 
     def process_document(self, file_key: str) -> Tuple[List[ParsedDocPage], ParsedDoc]:
