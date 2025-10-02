@@ -19,6 +19,8 @@ class DeelabTranscribeManager:
         llm_model_id: str = "claude-sonnet-4@20250514",
         target_language: str = "es",
         transcription_additional_instructions: str = "",
+        transcription_accuracy_threshold: int = 90,
+        max_transcription_retries: int = 2,
     ):
         self.gcp_project_id = gcp_project_id
         self.gcp_project_location = gcp_project_location
@@ -29,6 +31,8 @@ class DeelabTranscribeManager:
         self.transcription_additional_instructions = (
             transcription_additional_instructions
         )
+        self.transcription_accuracy_threshold = transcription_accuracy_threshold
+        self.max_transcription_retries = max_transcription_retries
         self.gcp_sa_dict = self._get_gcp_sa_dict(gcp_secret_name)
         self.vertex_model = self._get_vertex_model()
 
@@ -60,6 +64,8 @@ class DeelabTranscribeManager:
                 persistence_service=s3_persistence_service,
                 target_language=self.target_language,
                 transcription_additional_instructions=self.transcription_additional_instructions,
+                transcription_accuracy_threshold=self.transcription_accuracy_threshold,
+                max_transcription_retries=self.max_transcription_retries,
             )
             parsed_pages, parsed_document = (
                 transcribe_document_service.process_document(file_key)

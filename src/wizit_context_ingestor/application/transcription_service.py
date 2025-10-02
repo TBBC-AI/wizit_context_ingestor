@@ -23,10 +23,25 @@ class TranscriptionService:
         persistence_service: PersistenceService,
         target_language: str = "es",
         transcription_additional_instructions: str = "",
+        transcription_accuracy_threshold: int = 90,
+        max_transcription_retries: int = 2,
     ):
         self.ai_application_service = ai_application_service
         self.persistence_service = persistence_service
         self.target_language = target_language
+        if (
+            transcription_accuracy_threshold < 0
+            or transcription_accuracy_threshold > 95
+        ):
+            raise ValueError(
+                "transcription_accuracy_threshold must be between 0 and 95"
+            )
+        if max_transcription_retries < 1 and max_transcription_retries > 3:
+            raise ValueError(
+                "max_transcription_retries must be between 1 and 3 to prevent token exhaustion"
+            )
+        self.transcription_accuracy_threshold = transcription_accuracy_threshold
+        self.max_transcription_retries = max_transcription_retries
         self.transcription_additional_instructions = (
             transcription_additional_instructions
         )
@@ -105,7 +120,7 @@ class TranscriptionService:
                         content=[
                             {
                                 "type": "text",
-                                "text": "Transcribe the document, ensure all content transcribed accurately. transcription must be in the same language as the document.",
+                                "text": "Transcribe the document, ensure all content transcribed accurately. transcription must be in the same language of source document.",
                             },
                         ]
                     ),
@@ -123,8 +138,8 @@ class TranscriptionService:
             },
             {
                 "configurable": {
-                    "transcription_accuracy_threshold": 0.95,
-                    "max_transcription_retries": 2,
+                    "transcription_accuracy_threshold": self.transcription_accuracy_threshold,
+                    "max_transcription_retries": self.max_transcription_retries,
                 }
             },
         )
