@@ -122,6 +122,13 @@ Finally
     poetry publish -r tbbcmegaingestor
 ```
 
+# USAGE
+
+## For transcriptions
+
+----- TODO ---
+You can provide number of retries and a transcription quality threshold
+
 ## License
 
 This project is licensed under the Apache License - see the LICENSE file for details.

@@ -11,15 +11,15 @@ from ...application.interfaces import EmbeddingsManager
 
 logger = logging.getLogger(__name__)
 
-class ChromaEmbeddingsManager(EmbeddingsManager):
 
-    __slots__ = ("embeddings_model", "collection_name", "metadata_tags")
+class ChromaEmbeddingsManager(EmbeddingsManager):
+    __slots__ = ("embeddings_model", "collection_name")
+
     def __init__(
         self,
         embeddings_model,
-        metadata_tags: dict,
         chroma_host=None,
-        **chroma_conn_kwargs
+        **chroma_conn_kwargs,
     ):
         """
         Initialize the ChromaEmbeddingsManager.
@@ -27,38 +27,28 @@ class ChromaEmbeddingsManager(EmbeddingsManager):
             embeddings_model: The embeddings model to use for generating vector embeddings
                               (typically a LangChain embeddings model instance)
             chroma_host: The Chroma host URL
-            metadata_tags: Tags to add as metadata to Chroma vector store
 
         Raises:
             Exception: If there's an error initializing the RedisEmbeddingsManager
         """
         self.embeddings_model = embeddings_model
         self.chroma_host = chroma_host
-        self.metadata_tags_schema = []
-
-        for tag_key in metadata_tags:
-          self.metadata_tags_schema.append({
-              "type": "tag",
-              "name": tag_key
-          })
-
         try:
             if chroma_host:
                 self.chroma = Chroma(
                     embedding_function=self.embeddings_model,
                     host=chroma_host,
-                    **chroma_conn_kwargs
+                    **chroma_conn_kwargs,
                 )
                 logger.info("ChromaEmbeddingsManager initialized")
             else:
                 self.chroma = Chroma(
-                    embedding_function=self.embeddings_model,
-                    **chroma_conn_kwargs
+                    embedding_function=self.embeddings_model, **chroma_conn_kwargs
                 )
                 logger.info("ChromaEmbeddingsManager initialized")
         except Exception as e:
-          logger.error(f"Failed to initialize ChromaEmbeddingsManager: {str(e)}")
-          raise
+            logger.error(f"Failed to initialize ChromaEmbeddingsManager: {str(e)}")
+            raise
 
     def configure_vector_store(
         self,
@@ -66,8 +56,6 @@ class ChromaEmbeddingsManager(EmbeddingsManager):
         vector_size: int = 768,
         content_column: str = "document",
         id_column: str = "id",
-        metadata_json_column: str = "cmetadata",
-        pg_record_manager: str = ""
     ):
         """Configure the vector store."""
         pass
@@ -76,12 +64,10 @@ class ChromaEmbeddingsManager(EmbeddingsManager):
         self,
         table_name: str = "",
         content_column: str = "document",
-        metadata_json_column: str = "cmetadata",
         id_column: str = "id",
     ):
         """Initialize the vector store."""
         pass
-
 
     def index_documents(self, documents: list[Document]):
         """

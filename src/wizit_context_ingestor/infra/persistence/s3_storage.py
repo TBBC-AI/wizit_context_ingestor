@@ -11,12 +11,19 @@ logger = logging.getLogger(__name__)
 
 class S3StorageService(PersistenceService):
     """Persistence service for S3 storage."""
-    __slots__ = ('origin_bucket_name', 'target_bucket_name', 'region_name')
-    def __init__(self, origin_bucket_name: str, target_bucket_name: str, region_name: str = 'us-east-1'):
-        self.s3 = boto3_client('s3', region_name=region_name)
+
+    __slots__ = ("origin_bucket_name", "target_bucket_name", "region_name")
+
+    def __init__(
+        self,
+        origin_bucket_name: str,
+        target_bucket_name: str,
+        region_name: str = "us-east-1",
+    ):
+        self.s3 = boto3_client("s3", region_name=region_name)
         self.origin_bucket_name = origin_bucket_name
         self.target_bucket_name = target_bucket_name
-
+        self.supports_tagging = hasattr(self, "retrieve_file_tags")
 
     def load_markdown_file_content(self, file_key: str) -> str:
         """Load markdown file content from S3 storage.
@@ -36,9 +43,9 @@ class S3StorageService(PersistenceService):
             response = self.s3.get_object(Bucket=self.target_bucket_name, Key=file_key)
             tmp_file_key = f"/tmp/{file_key}"
             os.makedirs(os.path.dirname(tmp_file_key), exist_ok=True)
-            with open(tmp_file_key, 'wb') as f:
-                f.write(response['Body'].read())
-            with open(tmp_file_key, 'r', encoding='utf-8') as f:
+            with open(tmp_file_key, "wb") as f:
+                f.write(response["Body"].read())
+            with open(tmp_file_key, "r", encoding="utf-8") as f:
                 file_content = f.read()
             return file_content
         except ClientError as e:
@@ -47,7 +54,6 @@ class S3StorageService(PersistenceService):
         except Exception as e:
             logger.error(f"Unexpected error loading file {file_key} from S3: {str(e)}")
             raise
-
 
     def retrieve_raw_file(self, file_key: str) -> str:
         """Retrieve file path in tmp folder from S3 storage.
@@ -67,18 +73,21 @@ class S3StorageService(PersistenceService):
             tmp_file_key = f"/tmp/{file_key}"
             # Create parent directories if they don't exist
             os.makedirs(os.path.dirname(tmp_file_key), exist_ok=True)
-            with open(tmp_file_key, 'wb') as f:
-                f.write(response['Body'].read())
+            with open(tmp_file_key, "wb") as f:
+                f.write(response["Body"].read())
             return tmp_file_key
         except ClientError as e:
             logger.error(f"Error retrieving file {file_key} from S3: {str(e)}")
             raise
         except Exception as e:
-            logger.error(f"Unexpected error retrieving file {file_key} from S3: {str(e)}")
+            logger.error(
+                f"Unexpected error retrieving file {file_key} from S3: {str(e)}"
+            )
             raise
 
-
-    def save_parsed_document(self, file_key: str, parsed_document: ParsedDoc, file_tags: Optional[dict] = {}):
+    def save_parsed_document(
+        self, file_key: str, parsed_document: ParsedDoc, file_tags: Optional[dict] = {}
+    ):
         """Save a parsed document to S3.
 
         Args:
@@ -91,21 +100,21 @@ class S3StorageService(PersistenceService):
         """
         try:
             # Convert document content to bytes
-            content_bytes = parsed_document.document_text.encode('utf-8')
+            content_bytes = parsed_document.document_text.encode("utf-8")
             # Upload the file to S3
             if not file_tags:
                 self.s3.put_object(
-                    Bucket=self.target_bucket_name,
-                    Key=file_key,
-                    Body=content_bytes
+                    Bucket=self.target_bucket_name, Key=file_key, Body=content_bytes
                 )
             else:
-                tagging_string = "&".join([f"{key}={value}" for key, value in file_tags.items()])
+                tagging_string = "&".join(
+                    [f"{key}={value}" for key, value in file_tags.items()]
+                )
                 self.s3.put_object(
                     Bucket=self.target_bucket_name,
                     Key=file_key,
                     Body=content_bytes,
-                    Tagging=tagging_string
+                    Tagging=tagging_string,
                 )
 
             logger.info(f"Successfully saved document to S3 as {file_key}")
@@ -122,8 +131,5 @@ class S3StorageService(PersistenceService):
         Args:
             file_key: The key (path) to retrieve tags
         """
-        response = self.s3.get_object_tagging(
-            Bucket=bucket_name,
-            Key=file_key
-        )
+        response = self.s3.get_object_tagging(Bucket=bucket_name, Key=file_key)
         return {item["Key"]: item["Value"] for item in response["TagSet"]}

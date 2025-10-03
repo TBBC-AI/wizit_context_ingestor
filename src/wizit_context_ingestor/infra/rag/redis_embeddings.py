@@ -2,6 +2,7 @@ from langchain_core.documents import Document
 from langchain_redis import RedisConfig, RedisVectorStore
 from typing import List
 import logging
+
 # from dotenv import load_dotenv
 from ...application.interfaces import EmbeddingsManager
 
@@ -9,10 +10,13 @@ from ...application.interfaces import EmbeddingsManager
 
 logger = logging.getLogger(__name__)
 
-class RedisEmbeddingsManager(EmbeddingsManager):
 
+class RedisEmbeddingsManager(EmbeddingsManager):
     __slots__ = ("embeddings_model", "redis_conn_string", "metadata_tags")
-    def __init__(self, embeddings_model, redis_conn_string: str, metadata_tags: dict):
+
+    def __init__(
+        self, embeddings_model, redis_conn_string: str, metadata_tags: List[str] = []
+    ):
         """
         Initialize the RedisEmbeddingsManager.
         Args:
@@ -27,27 +31,23 @@ class RedisEmbeddingsManager(EmbeddingsManager):
         """
         self.redis_conn_string = redis_conn_string
         self.embeddings_model = embeddings_model
-        self.metadata_tags_schema = []
-
+        self.metadata_tags_schema = [{"type": "text", "name": "context"}]
         for tag_key in metadata_tags:
-          self.metadata_tags_schema.append({
-              "type": "tag",
-              "name": tag_key
-          })
+            self.metadata_tags_schema.append({"type": "text", "name": tag_key})
 
         try:
-          self.redis_config = RedisConfig(
-            index_name="vector_store",
-            redis_url=self.redis_conn_string,
-            metadata_schema=[
-              {"type": "text", "name": "context"}
-            ]+self.metadata_tags_schema,
-          )
-          self.vector_store = RedisVectorStore(self.embeddings_model, config=self.redis_config)
-          logger.info("RedisEmbeddingsManager initialized")
+            self.redis_config = RedisConfig(
+                index_name="vector_store",
+                redis_url=self.redis_conn_string,
+                metadata_schema=self.metadata_tags_schema,
+            )
+            self.vector_store = RedisVectorStore(
+                self.embeddings_model, config=self.redis_config
+            )
+            logger.info("RedisEmbeddingsManager initialized")
         except Exception as e:
-          logger.error(f"Failed to initialize RedisEmbeddingsManager: {str(e)}")
-          raise
+            logger.error(f"Failed to initialize RedisEmbeddingsManager: {str(e)}")
+            raise
 
     def configure_vector_store(
         self,
@@ -56,7 +56,7 @@ class RedisEmbeddingsManager(EmbeddingsManager):
         content_column: str = "document",
         id_column: str = "id",
         metadata_json_column: str = "cmetadata",
-        pg_record_manager: str = "postgres/langchain_pg_collection"
+        pg_record_manager: str = "postgres/langchain_pg_collection",
     ):
         """Configure the vector store."""
         pass
@@ -73,13 +73,14 @@ class RedisEmbeddingsManager(EmbeddingsManager):
 
     def vector_store_initialized(func):
         """validate vector store initialization"""
-        def wrapper(self, *args, **kwargs):
-          # Common validation logic
-          if self.vector_store is None:
-            raise Exception("Vector store not initialized")
-          return func(self, *args, **kwargs)
-        return wrapper
 
+        def wrapper(self, *args, **kwargs):
+            # Common validation logic
+            if self.vector_store is None:
+                raise Exception("Vector store not initialized")
+            return func(self, *args, **kwargs)
+
+        return wrapper
 
     @vector_store_initialized
     def index_documents(self, docs: List[Document]):

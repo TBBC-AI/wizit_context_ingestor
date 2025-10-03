@@ -1,3 +1,3 @@
-from .main import DeelabTranscribeManager, DeelabRedisChunksManager, DeelabChromaChunksManager
+from .main import ChunksManager, TranscriptionManager
 
-__all__ = ["DeelabTranscribeManager", "DeelabRedisChunksManager", "DeelabChromaChunksManager"]
+__all__ = ["ChunksManager", "TranscriptionManager"]
