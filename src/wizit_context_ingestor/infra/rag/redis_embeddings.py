@@ -130,6 +130,14 @@ class RedisEmbeddingsManager(EmbeddingsManager):
             logger.error(f"Error deleting documents by ID: {str(e)}")
             raise
 
+    @vector_store_initialized
+    def delete_documents_by_metadata_key(self, metadata_key: str, metadata_value: str):
+        """
+        Delete documents by filter from the vector store.
+        """
+        # TODO investigate how to do this
+        pass
+
     def get_documents_keys_by_source_id(self, source_id: str):
         """Get documents keys by source ID."""
         pass

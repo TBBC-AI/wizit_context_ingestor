@@ -47,59 +47,59 @@ class TranscriptionService:
         )
         self.chat_model = self.ai_application_service.load_chat_model()
 
-    def parse_doc_page(self, document: ParsedDocPage) -> ParsedDocPage:
-        """Transcribe an image to text.
-        Args:
-            document: The document with the image to transcribe
-        Returns:
-            Processed text
-        """
-        try:
-            # Create the prompt template with image
-            transcription_output_parser = PydanticOutputParser(
-                pydantic_object=Transcription
-            )
-            prompt = ChatPromptTemplate.from_messages(
-                [
-                    ("system", IMAGE_TRANSCRIPTION_SYSTEM_PROMPT),
-                    (
-                        "human",
-                        [
-                            {
-                                "type": "image",
-                                "image_url": {
-                                    "url": f"data:image/png;base64,{document.page_base64}"
-                                },
-                            },
-                            {
-                                "type": "text",
-                                "text": "Transcribe the document, ensure all content transcribed accurately",
-                            },
-                        ],
-                    ),
-                ]
-            ).partial(
-                transcription_additional_instructions=self.transcription_additional_instructions,
-                format_instructions=transcription_output_parser.get_format_instructions(),
-            )
-            model_with_structured_output = self.chat_model.with_structured_output(
-                Transcription
-            )
-            # Create the chain
-            chain = prompt | model_with_structured_output
-            # Process the image
-            chain = chain.with_retry(
-                stop_after_attempt=3, exponential_jitter_params={"initial": 60}
-            )
-            result = chain.invoke({})
-            if result.transcription:
-                document.page_text = result.transcription
-            else:
-                raise ValueError("No transcription found")
-            return document
-        except Exception as e:
-            logger.error(f"Failed to parse document page: {str(e)}")
-            raise
+    # def parse_doc_page(self, document: ParsedDocPage) -> ParsedDocPage:
+    #     """Transcribe an image to text.
+    #     Args:
+    #         document: The document with the image to transcribe
+    #     Returns:
+    #         Processed text
+    #     """
+    #     try:
+    #         # Create the prompt template with image
+    #         transcription_output_parser = PydanticOutputParser(
+    #             pydantic_object=Transcription
+    #         )
+    #         prompt = ChatPromptTemplate.from_messages(
+    #             [
+    #                 ("system", IMAGE_TRANSCRIPTION_SYSTEM_PROMPT),
+    #                 (
+    #                     "human",
+    #                     [
+    #                         {
+    #                             "type": "image",
+    #                             "image_url": {
+    #                                 "url": f"data:image/png;base64,{document.page_base64}"
+    #                             },
+    #                         },
+    #                         {
+    #                             "type": "text",
+    #                             "text": "Transcribe the document, ensure all content transcribed accurately",
+    #                         },
+    #                     ],
+    #                 ),
+    #             ]
+    #         ).partial(
+    #             transcription_additional_instructions=self.transcription_additional_instructions,
+    #             format_instructions=transcription_output_parser.get_format_instructions(),
+    #         )
+    #         model_with_structured_output = self.chat_model.with_structured_output(
+    #             Transcription
+    #         )
+    #         # Create the chain
+    #         chain = prompt | model_with_structured_output
+    #         # Process the image
+    #         chain = chain.with_retry(
+    #             stop_after_attempt=3, exponential_jitter_params={"initial": 60}
+    #         )
+    #         result = chain.invoke({})
+    #         if result.transcription:
+    #             document.page_text = result.transcription
+    #         else:
+    #             raise ValueError("No transcription found")
+    #         return document
+    #     except Exception as e:
+    #         logger.error(f"Failed to parse document page: {str(e)}")
+    #         raise
 
     def parse_doc_page_with_workflow(self, document: ParsedDocPage) -> ParsedDocPage:
         """Transcribe an image to text using an agent.

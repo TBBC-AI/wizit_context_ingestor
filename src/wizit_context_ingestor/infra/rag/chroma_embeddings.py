@@ -114,6 +114,18 @@ class ChromaEmbeddingsManager(EmbeddingsManager):
             logger.error(f"Error deleting documents by ID: {str(e)}")
             raise
 
+    def delete_documents_by_metadata_key(self, metadata_key: str, metadata_value: str):
+        """
+        Delete documents by filter from the vector store.
+        """
+        try:
+            self.chroma.delete(where={metadata_key: metadata_value})
+        except Exception as error:
+            logger.error(
+                f"Error deleting documents by filter: {str(filter)}, error: {error} "
+            )
+            raise
+
     def get_documents_keys_by_source_id(self, source_id: str):
         """Get documents keys by source ID."""
         pass
