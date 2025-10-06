@@ -205,6 +205,7 @@ class ContextChunksInDocumentService:
             logger.info(f"Context chunks generated:{len(context_chunks)}")
             # upsert validation
             try:
+                print(f"deleting chunks: {file_key}")
                 self.delete_document_context_chunks(file_key)
             except Exception as e:
                 logger.error(f"could not delete by source: {e}")
@@ -220,7 +221,7 @@ class ContextChunksInDocumentService:
         """
         try:
             self.embeddings_manager.delete_documents_by_metadata_key(
-                self.metadata_key, file_key
+                self.metadata_source, file_key
             )
         except Exception as e:
             logger.error(f"Error delete_document_context_chunks: {str(e)}")
