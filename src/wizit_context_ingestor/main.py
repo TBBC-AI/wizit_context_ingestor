@@ -11,6 +11,7 @@ from .infra.rag.chroma_embeddings import ChromaEmbeddingsManager
 from .infra.secrets.aws_secrets_manager import AwsSecretsManager
 from .data.storage import storage_services, StorageServices
 from .data.kdb import kdb_services, KdbServices
+from .utils.file_utils import has_invalid_file_name_format
 
 
 class KdbManager:
@@ -124,6 +125,10 @@ class TranscriptionManager:
             Exception: If an error occurs during the transcription process.
         """
         try:
+            if has_invalid_file_name_format(file_key):
+                raise ValueError(
+                    "Invalid file name format, do not provide special characters or spaces (instead use underscores or hyphens)"
+                )
             persistence_layer = PersistenceManager(
                 self.storage_service,
                 self.source_storage_route,
@@ -207,6 +212,10 @@ class ChunksManager:
         self, file_key: str, source_storage_route: str, target_storage_route: str
     ):
         try:
+            if has_invalid_file_name_format(file_key):
+                raise ValueError(
+                    "Invalid file name format, do not provide special characters or spaces (instead use underscores or hyphens)"
+                )
             persistence_layer = PersistenceManager(
                 self.storage_service, source_storage_route, target_storage_route
             )
