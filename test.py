@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 from src.wizit_context_ingestor import ChunksManager, TranscriptionManager
+
+# from src.wizit_context_ingestor.infra.persistence import LocalStorageService
 import pyinstrument
 import sys
 
@@ -33,10 +35,15 @@ if __name__ == "__main__":
             file_name = "TBBC-2025.pdf.md"
 
         if operation == "transcribe":
+            # storage_service = LocalStorageService("data", "tmp")
+
             deelab_transcribe_manager = TranscriptionManager(
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
                 gcp_secret_name,
+                storage_service="local",
+                source_storage_route="data",
+                target_storage_route="tmp",
                 transcription_additional_instructions="""
                     - HIGHLIGHTED CONTENT DETECTION:\n
                         - Wrap all highlighted content with <highlighted_content> tags.\n
@@ -53,9 +60,7 @@ if __name__ == "__main__":
             # deelab_transcribe_manager.transcribe_document(
             #     file_name, "s3", S3_ORIGIN_BUCKET_NAME, S3_TARGET_BUCKET_NAME
             # )
-            deelab_transcribe_manager.transcribe_document(
-                file_name, "local", "tmp", "tmp"
-            )
+            deelab_transcribe_manager.transcribe_document(file_name)
 
         elif operation == "context":
             if not file_name.endswith(".md"):
@@ -66,6 +71,9 @@ if __name__ == "__main__":
             # tenant=CHROMA_CLOUD_TENANT,
             # database=CHROMA_COLLECTION_NAME,
             # "redis_conn_string": REDIS_CONNECTION_STRING,
+            # "chroma_cloud_api_key": CHROMA_CLOUD_API_KEY,
+            # "tenant": CHROMA_CLOUD_TENANT,
+            # "database": CHROMA_COLLECTION_NAME,
             deelab_chunks_manager = ChunksManager(
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
