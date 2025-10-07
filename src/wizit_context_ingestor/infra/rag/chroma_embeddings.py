@@ -1,10 +1,6 @@
-from typing_extensions import Sequence
-from test.test_typing import CoolEmployee
 from langchain_core.documents import Document
 from langchain_chroma import Chroma
-from typing import List
 import logging
-from uuid import uuid4
 from ...application.interfaces import EmbeddingsManager
 
 # load_dotenv()

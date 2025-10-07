@@ -12,6 +12,7 @@ from .infra.secrets.aws_secrets_manager import AwsSecretsManager
 from .data.storage import storage_services, StorageServices
 from .data.kdb import kdb_services, KdbServices
 from .utils.file_utils import has_invalid_file_name_format
+from langsmith import Client, tracing_context
 
 
 class KdbManager:
@@ -69,6 +70,8 @@ class TranscriptionManager:
         gcp_project_id: str,
         gcp_project_location: str,
         gcp_secret_name: str,
+        langsmith_api_key: str,
+        langsmith_project_name: str,
         storage_service: storage_services,
         source_storage_route: str,
         target_storage_route: str,
@@ -94,6 +97,9 @@ class TranscriptionManager:
         self.max_transcription_retries = max_transcription_retries
         self.gcp_sa_dict = self._get_gcp_sa_dict(gcp_secret_name)
         self.vertex_model = self._get_vertex_model()
+        self.langsmith_api_key = langsmith_api_key
+        self.langsmith_project_name = langsmith_project_name
+        self.langsmith_client = Client(api_key=self.langsmith_api_key)
 
     def _get_gcp_sa_dict(self, gcp_secret_name: str):
         vertex_gcp_sa = self.aws_secrets_manager.get_secret(gcp_secret_name)
@@ -109,6 +115,18 @@ class TranscriptionManager:
         )
         return vertex_model
 
+    def tracing(func):
+        def gen_tracing_context(self, *args, **kwargs):
+            with tracing_context(
+                enabled=True,
+                project_name=self.langsmith_project_name,
+                client=self.langsmith_client,
+            ):
+                return func(self, *args, **kwargs)
+
+        return gen_tracing_context
+
+    @tracing
     def transcribe_document(self, file_key: str):
         """Transcribe a document from source storage to target storage.
         This method serves as a generic interface for transcribing documents from
@@ -171,6 +189,8 @@ class ChunksManager:
         gcp_project_id: str,
         gcp_project_location: str,
         gcp_secret_name: str,
+        langsmith_api_key: str,
+        langsmith_project_name: str,
         storage_service: storage_services,
         kdb_service: Literal["redis", "chroma"],
         kdb_params: Dict[Any, Any],
@@ -188,11 +208,13 @@ class ChunksManager:
         self.storage_service = storage_service
         self.kdb_params = kdb_params
         self.kdb_service = kdb_service
-        # self.redis_connection_string = redis_connection_string
         self.vertex_model = self._get_vertex_model()
         self.embeddings_model = self.vertex_model.load_embeddings_model(
             embeddings_model_id
         )
+        self.langsmith_api_key = langsmith_api_key
+        self.langsmith_project_name = langsmith_project_name
+        self.langsmith_client = Client(api_key=self.langsmith_api_key)
 
     def _get_gcp_sa_dict(self, gcp_secret_name: str):
         vertex_gcp_sa = self.aws_secrets_manager.get_secret(gcp_secret_name)
@@ -208,6 +230,18 @@ class ChunksManager:
         )
         return vertex_model
 
+    def tracing(func):
+        def gen_tacing_context(self, *args, **kwargs):
+            with tracing_context(
+                enabled=True,
+                project_name=self.langsmith_project_name,
+                client=self.langsmith_client,
+            ):
+                return func(self, *args, **kwargs)
+
+        return gen_tacing_context
+
+    @tracing
     def gen_context_chunks(
         self, file_key: str, source_storage_route: str, target_storage_route: str
     ):

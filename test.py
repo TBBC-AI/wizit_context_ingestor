@@ -17,6 +17,8 @@ CHROMA_HOST = os.environ.get("REDIS_CONNECTION_STRING", "")
 CHROMA_COLLECTION_NAME = os.environ.get("CHROMA_COLLECTION_NAME", "")
 CHROMA_CLOUD_API_KEY = os.environ.get("CHROMA_CLOUD_API_KEY", "")
 CHROMA_CLOUD_TENANT = os.environ.get("CHROMA_CLOUD_TENANT", "")
+LANGSMITH_API_KEY = os.environ.get("LANGSMITH_API_KEY", "")
+LANGCHAIN_PROJECT = os.environ.get("LANGCHAIN_PROJECT", "")
 gcp_sa_path = os.path.join(os.path.dirname(__file__), "credentials", "gcp_sa.json")
 
 if __name__ == "__main__":
@@ -41,6 +43,8 @@ if __name__ == "__main__":
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
                 gcp_secret_name,
+                LANGSMITH_API_KEY,
+                "test_wrapper",
                 storage_service="local",
                 source_storage_route="data",
                 target_storage_route="tmp",
@@ -78,6 +82,8 @@ if __name__ == "__main__":
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
                 gcp_secret_name,
+                LANGSMITH_API_KEY,
+                LANGCHAIN_PROJECT,
                 "local",
                 "chroma",
                 {
