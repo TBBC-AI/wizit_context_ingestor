@@ -146,7 +146,7 @@ class TranscriptionService:
         if result["transcription"]:
             document.page_text = result["transcription"]
         else:
-            raise ValueError("No transcription found")
+            raise ValueError(f"No transcription found: {result} ")
         return document
 
     def process_document(self, file_key: str) -> Tuple[List[ParsedDocPage], ParsedDoc]:

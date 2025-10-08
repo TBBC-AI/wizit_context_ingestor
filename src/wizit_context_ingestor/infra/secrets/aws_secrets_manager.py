@@ -3,11 +3,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class AwsSecretsManager:
-
-    def __init__(self):
-        self.client = boto3_client('secretsmanager')
-
+    def __init__(self, aws_region="us-east-1"):
+        self.client = boto3_client("secretsmanager", region_name=aws_region)
 
     def get_secret(self, secret_name):
         """
