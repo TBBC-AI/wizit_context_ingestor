@@ -78,7 +78,7 @@ class TranscriptionManager:
         llm_model_id: str = "claude-sonnet-4@20250514",
         target_language: str = "es",
         transcription_additional_instructions: str = "",
-        transcription_accuracy_threshold: int = 90,
+        transcription_accuracy_threshold: float = 0.90,
         max_transcription_retries: int = 2,
     ):
         self.gcp_project_id = gcp_project_id
@@ -116,18 +116,18 @@ class TranscriptionManager:
         return vertex_model
 
     def tracing(func):
-        def gen_tracing_context(self, *args, **kwargs):
+        async def gen_tracing_context(self, *args, **kwargs):
             with tracing_context(
                 enabled=True,
                 project_name=self.langsmith_project_name,
                 client=self.langsmith_client,
             ):
-                return func(self, *args, **kwargs)
+                return await func(self, *args, **kwargs)
 
         return gen_tracing_context
 
     @tracing
-    def transcribe_document(self, file_key: str):
+    async def transcribe_document(self, file_key: str):
         """Transcribe a document from source storage to target storage.
         This method serves as a generic interface for transcribing documents from
         various storage sources to target destinations. The specific implementation
@@ -162,9 +162,10 @@ class TranscriptionManager:
                 transcription_accuracy_threshold=self.transcription_accuracy_threshold,
                 max_transcription_retries=self.max_transcription_retries,
             )
-            parsed_pages, parsed_document = (
-                transcribe_document_service.process_document(file_key)
-            )
+            (
+                parsed_pages,
+                parsed_document,
+            ) = await transcribe_document_service.process_document(file_key)
             source_storage_file_tags = {}
             if persistence_service.supports_tagging:
                 # source_storage_file_tags.tag_file(file_key, {"status": "transcribed"})
@@ -231,18 +232,18 @@ class ChunksManager:
         return vertex_model
 
     def tracing(func):
-        def gen_tacing_context(self, *args, **kwargs):
+        async def gen_tracing_context(self, *args, **kwargs):
             with tracing_context(
                 enabled=True,
                 project_name=self.langsmith_project_name,
                 client=self.langsmith_client,
             ):
-                return func(self, *args, **kwargs)
+                return await func(self, *args, **kwargs)
 
-        return gen_tacing_context
+        return gen_tracing_context
 
     @tracing
-    def gen_context_chunks(
+    async def gen_context_chunks(
         self, file_key: str, source_storage_route: str, target_storage_route: str
     ):
         try:
@@ -272,7 +273,7 @@ class ChunksManager:
                 target_language=self.target_language,
             )
             context_chunks = (
-                context_chunks_in_document_service.get_context_chunks_in_document(
+                await context_chunks_in_document_service.get_context_chunks_in_document(
                     file_key, target_bucket_file_tags
                 )
             )

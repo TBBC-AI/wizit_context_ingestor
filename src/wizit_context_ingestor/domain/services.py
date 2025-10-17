@@ -8,8 +8,9 @@ from ..domain.models import ParsedDocPage, ParsedDoc
 
 logger = logging.getLogger(__name__)
 
+
 # CHECK THIS THING IMPROVE THE WAY CODE IS STRUCTURED
-class ParseDocModelService():
+class ParseDocModelService:
     """
     Class for parsing PDF documents, converting pages to base64 images
     """
@@ -24,7 +25,6 @@ class ParseDocModelService():
         self.file_path = file_path
         self.pdf_document = pymupdf.open(file_path)
         self.page_count = self.pdf_document.page_count
-
 
     def pdf_page_to_base64(self, page_number: int) -> ParsedDocPage:
         """
@@ -48,10 +48,7 @@ class ParseDocModelService():
             img.save(buffer, format="PNG")
             b64_encoded_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
             logger.info(f"Page {page_number} encoded successfully")
-            return ParsedDocPage(
-                page_number=page_number,
-                page_base64=b64_encoded_image
-            )
+            return ParsedDocPage(page_number=page_number, page_base64=b64_encoded_image)
         except Exception as e:
             logger.error(f"Failed to parse b64 image: {str(e)}")
             raise
@@ -87,12 +84,10 @@ class ParseDocModelService():
         Create a markdown content from a list of parsed pages.
         """
         md_content = ""
-        for page in parsed_pages:
+        sorted_pages = sorted(parsed_pages, key=lambda page: page.page_number)
+        for page in sorted_pages:
             md_content += f"## Page {page.page_number}\n\n"
             md_content += f"{page.page_text}\n\n"
-        return ParsedDoc(
-            pages=parsed_pages,
-            document_text=md_content
-        )
+        return ParsedDoc(pages=parsed_pages, document_text=md_content)
 
     # def

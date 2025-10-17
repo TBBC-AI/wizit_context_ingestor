@@ -1,4 +1,5 @@
 import os
+import asyncio
 from dotenv import load_dotenv
 from src.wizit_context_ingestor import ChunksManager, TranscriptionManager
 
@@ -54,6 +55,8 @@ if __name__ == "__main__":
                         - For tables with highlighted content, only column names must be wrapped in <highlighted_content> tags.\n
                         - Maintain the original order and formatting of the content.
                 """,
+                max_transcription_retries=1,
+                transcription_accuracy_threshold=0.80,
             )
 
             # deelab_transcribe_manager.aws_cloud_transcribe_document(
@@ -64,7 +67,7 @@ if __name__ == "__main__":
             # deelab_transcribe_manager.transcribe_document(
             #     file_name, "s3", S3_ORIGIN_BUCKET_NAME, S3_TARGET_BUCKET_NAME
             # )
-            deelab_transcribe_manager.transcribe_document(file_name)
+            asyncio.run(deelab_transcribe_manager.transcribe_document(file_name))
 
         elif operation == "context":
             if not file_name.endswith(".md"):
@@ -93,7 +96,9 @@ if __name__ == "__main__":
                 },
             )
 
-            deelab_chunks_manager.gen_context_chunks(file_name, "tmp", "tmp")
+            asyncio.run(
+                deelab_chunks_manager.gen_context_chunks(file_name, "tmp", "tmp")
+            )
 
             # deelab_chunks_manager.gen_context_chunks(
             #     file_name, S3_ORIGIN_BUCKET_NAME, S3_TARGET_BUCKET_NAME

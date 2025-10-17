@@ -1,3 +1,4 @@
+import asyncio
 from typing import Tuple, List, Dict, Optional
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers.pydantic import PydanticOutputParser
@@ -23,15 +24,15 @@ class TranscriptionService:
         persistence_service: PersistenceService,
         target_language: str = "es",
         transcription_additional_instructions: str = "",
-        transcription_accuracy_threshold: int = 90,
+        transcription_accuracy_threshold: float = 0.90,
         max_transcription_retries: int = 2,
     ):
         self.ai_application_service = ai_application_service
         self.persistence_service = persistence_service
         self.target_language = target_language
         if (
-            transcription_accuracy_threshold < 0
-            or transcription_accuracy_threshold > 95
+            transcription_accuracy_threshold < 0.0
+            or transcription_accuracy_threshold > 0.95
         ):
             raise ValueError(
                 "transcription_accuracy_threshold must be between 0 and 95"
@@ -46,6 +47,15 @@ class TranscriptionService:
             transcription_additional_instructions
         )
         self.chat_model = self.ai_application_service.load_chat_model()
+        self.transcription_workflow = TranscriptionWorkflow(
+            self.chat_model, self.transcription_additional_instructions
+        )
+        self.compiled_transcription_workflow = (
+            self.transcription_workflow.gen_workflow()
+        )
+        self.compiled_transcription_workflow = (
+            self.compiled_transcription_workflow.compile()
+        )
 
     # def parse_doc_page(self, document: ParsedDocPage) -> ParsedDocPage:
     #     """Transcribe an image to text.
@@ -101,19 +111,16 @@ class TranscriptionService:
     #         logger.error(f"Failed to parse document page: {str(e)}")
     #         raise
 
-    def parse_doc_page_with_workflow(self, document: ParsedDocPage) -> ParsedDocPage:
+    async def parse_doc_page_with_workflow(
+        self, document: ParsedDocPage
+    ) -> ParsedDocPage:
         """Transcribe an image to text using an agent.
         Args:
             document: The document with the image to transcribe
         Returns:
             Processed text
         """
-        transcription_workflow = TranscriptionWorkflow(
-            self.chat_model, self.transcription_additional_instructions
-        )
-        compiled_transcription_workflow = transcription_workflow.gen_workflow()
-        compiled_transcription_workflow = compiled_transcription_workflow.compile()
-        result = compiled_transcription_workflow.invoke(
+        result = await self.compiled_transcription_workflow.ainvoke(
             {
                 "messages": [
                     HumanMessage(
@@ -149,17 +156,36 @@ class TranscriptionService:
             raise ValueError(f"No transcription found: {result} ")
         return document
 
-    def process_document(self, file_key: str) -> Tuple[List[ParsedDocPage], ParsedDoc]:
+    # def process_document(self, file_key: str) -> Tuple[List[ParsedDocPage], ParsedDoc]:
+    #     """
+    #     Process a document by parsing it and returning the parsed content.
+    #     """
+    #     raw_file_path = self.persistence_service.retrieve_raw_file(file_key)
+    #     parse_doc_model_service = ParseDocModelService(raw_file_path)
+    #     document_pages = parse_doc_model_service.parse_document_to_base64()
+    #     parsed_pages = []
+    #     for page in document_pages:
+    #         page = self.parse_doc_page_with_workflow(page)
+    #         parsed_pages.append(page)
+    #     logger.info(f"Parsed {len(parsed_pages)} pages")
+    #     parsed_document = parse_doc_model_service.create_md_content(parsed_pages)
+    #     return parsed_pages, parsed_document
+
+    async def process_document(
+        self, file_key: str
+    ) -> Tuple[List[ParsedDocPage], ParsedDoc]:
         """
         Process a document by parsing it and returning the parsed content.
         """
         raw_file_path = self.persistence_service.retrieve_raw_file(file_key)
         parse_doc_model_service = ParseDocModelService(raw_file_path)
         document_pages = parse_doc_model_service.parse_document_to_base64()
+        parse_pages_workflow_tasks = []
         parsed_pages = []
         for page in document_pages:
-            page = self.parse_doc_page_with_workflow(page)
-            parsed_pages.append(page)
+            parse_pages_workflow_tasks.append(self.parse_doc_page_with_workflow(page))
+        # here
+        parsed_pages = await asyncio.gather(*parse_pages_workflow_tasks)
         logger.info(f"Parsed {len(parsed_pages)} pages")
         parsed_document = parse_doc_model_service.create_md_content(parsed_pages)
         return parsed_pages, parsed_document

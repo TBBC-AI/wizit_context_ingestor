@@ -1,3 +1,4 @@
+import asyncio
 from langchain_core.output_parsers.pydantic import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.documents import Document
@@ -44,7 +45,7 @@ class ContextChunksInDocumentService:
         self.context_additional_instructions = ""
         self.metadata_source = "source"
 
-    def _retrieve_context_chunk_in_document_with_workflow(
+    async def _retrieve_context_chunk_in_document_with_workflow(
         self,
         workflow,
         markdown_content: str,
@@ -53,7 +54,7 @@ class ContextChunksInDocumentService:
     ) -> Document:
         """Retrieve context chunks in document."""
         try:
-            result = workflow.invoke(
+            result = await workflow.ainvoke(
                 {
                     "messages": [
                         HumanMessage(
@@ -74,9 +75,7 @@ class ContextChunksInDocumentService:
                     }
                 },
             )
-            # chunk.page_content = (
-            #     f"Context:{result['context']}, Content:{chunk.page_content}"
-            # )
+            chunk.page_content = f"<context>\n{result['context']}\n</context>\n <content>\n{chunk.page_content}\n</content>"
             chunk.metadata["context"] = result["context"]
             if chunk_metadata:
                 for key, value in chunk_metadata.items():
@@ -154,7 +153,7 @@ class ContextChunksInDocumentService:
     #         logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
     #         raise
 
-    def retrieve_context_chunks_in_document_with_workflow(
+    async def retrieve_context_chunks_in_document_with_workflow(
         self,
         markdown_content: str,
         chunks: List[Document],
@@ -167,7 +166,7 @@ class ContextChunksInDocumentService:
             )
             compiled_context_workflow = context_workflow.gen_workflow()
             compiled_context_workflow = compiled_context_workflow.compile()
-            context_chunks = list(
+            context_chunks_workflow_invocations = list(
                 map(
                     lambda chunk: self._retrieve_context_chunk_in_document_with_workflow(
                         compiled_context_workflow,
@@ -178,12 +177,13 @@ class ContextChunksInDocumentService:
                     chunks,
                 )
             )
+            context_chunks = await asyncio.gather(*context_chunks_workflow_invocations)
             return context_chunks
         except Exception as e:
             logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
             raise
 
-    def get_context_chunks_in_document(self, file_key: str, file_tags: dict = {}):
+    async def get_context_chunks_in_document(self, file_key: str, file_tags: dict = {}):
         """
         Get the context chunks in a document.
         """
@@ -199,8 +199,10 @@ class ContextChunksInDocumentService:
             logger.info(f"Document loaded:{file_key}")
             chunks = self.rag_chunker.gen_chunks_for_document(langchain_rag_document)
             logger.info(f"Chunks generated:{len(chunks)}")
-            context_chunks = self.retrieve_context_chunks_in_document_with_workflow(
-                markdown_content, chunks, file_tags
+            context_chunks = (
+                await self.retrieve_context_chunks_in_document_with_workflow(
+                    markdown_content, chunks, file_tags
+                )
             )
             logger.info(f"Context chunks generated:{len(context_chunks)}")
             # upsert validation
