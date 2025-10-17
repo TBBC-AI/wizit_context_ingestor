@@ -112,7 +112,7 @@ class TranscriptionService:
     #         raise
 
     async def parse_doc_page_with_workflow(
-        self, document: ParsedDocPage
+        self, document: ParsedDocPage, retries: int = 0
     ) -> ParsedDocPage:
         """Transcribe an image to text using an agent.
         Args:
@@ -120,6 +120,9 @@ class TranscriptionService:
         Returns:
             Processed text
         """
+        if retries > 1:
+            logger.info("Max retries exceeded")
+            return document
         result = await self.compiled_transcription_workflow.ainvoke(
             {
                 "messages": [
@@ -150,10 +153,10 @@ class TranscriptionService:
                 }
             },
         )
-        if result["transcription"]:
+        if "transcription" in result:
             document.page_text = result["transcription"]
         else:
-            raise ValueError(f"No transcription found: {result} ")
+            await self.parse_doc_page_with_workflow(document, retries=retries + 1)
         return document
 
     # def process_document(self, file_key: str) -> Tuple[List[ParsedDocPage], ParsedDoc]:
