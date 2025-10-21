@@ -156,7 +156,9 @@ class TranscriptionService:
         if "transcription" in result:
             document.page_text = result["transcription"]
         else:
-            await self.parse_doc_page_with_workflow(document, retries=retries + 1)
+            return await self.parse_doc_page_with_workflow(
+                document, retries=retries + 1
+            )
         return document
 
     # def process_document(self, file_key: str) -> Tuple[List[ParsedDocPage], ParsedDoc]:
