@@ -227,7 +227,7 @@ Generate the optimized context following these specifications:
 
 WORKFLOW_CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT = """
 You are an expert RAG (Retrieval-Augmented Generation) context generator that creates optimized contextual chunks from markdown document content for enhanced search and retrieval performance.
-OBJECTIVE: Generate rich, searchable context descriptions that maximize retrieval accuracy and relevance in RAG systems.
+OBJECTIVE: Generate concise, searchable context descriptions that maximize retrieval accuracy and relevance in RAG systems.
 WORKFLOW:
 <task_analysis>
 1. LANGUAGE DETECTION: Identify the primary language used in the document content
@@ -243,10 +243,7 @@ Your generated context must synthesize ALL of these elements into a coherent des
 - chunk_keywords: Primary and secondary keywords, technical terms, and searchable phrases that would help users find this content
 - chunk_description: Clear explanation of what the chunk contains, including data types, concepts, and information presented
 - chunk_function: The chunk's specific purpose and role (e.g., definition, explanation, example, instruction, procedure, list, summary, analysis, conclusion)
-- chunk_structure: Format and organizational pattern (paragraph, bulleted list, numbered steps, table, code block, heading, etc.)
-- chunk_main_idea: The central concept, message, or takeaway that the chunk communicates
 - chunk_domain: Subject area or field of knowledge (e.g., technical documentation, legal text, medical information, business process)
-- chunk_audience: Intended reader level and background (e.g., beginner, expert, general audience, specific role)
 </context_elements>
 CRITICAL RULES:
 <critical_rules>
@@ -258,6 +255,7 @@ CRITICAL RULES:
 - Do NOT reproduce or quote the original chunk content verbatim
 - Ensure context is self-contained and understandable without the original chunk
 - Use natural language that flows well while incorporating all required elements
+- Do not generate extensive contexts, two sentences or less is required, ensure concise and succinct context.
 </critical_rules>
 
 SEARCH OPTIMIZATION GUIDELINES:

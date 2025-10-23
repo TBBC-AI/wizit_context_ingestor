@@ -1,5 +1,3 @@
-from posix import fork
-
 # check this documentation
 # https://python.langchain.com/docs/how_to/semantic-chunker/
 # https://github.com/FullStackRetrieval-com/RetrievalTutorials/blob/main/tutorials/LevelsOfTextSplitting/5_Levels_Of_Text_Splitting.ipynb
