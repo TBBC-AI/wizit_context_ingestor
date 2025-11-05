@@ -11,7 +11,7 @@ from .infra.rag.chroma_embeddings import ChromaEmbeddingsManager
 from .infra.secrets.aws_secrets_manager import AwsSecretsManager
 from .data.storage import storage_services, StorageServices
 from .data.kdb import kdb_services, KdbServices
-from .utils.file_utils import has_invalid_file_name_format
+from .utils.file_utils import validate_file_name_format
 from langsmith import Client, tracing_context
 
 
@@ -143,7 +143,7 @@ class TranscriptionManager:
             Exception: If an error occurs during the transcription process.
         """
         try:
-            if has_invalid_file_name_format(file_key):
+            if not validate_file_name_format(file_key):
                 raise ValueError(
                     "Invalid file name format, do not provide special characters or spaces (instead use underscores or hyphens)"
                 )

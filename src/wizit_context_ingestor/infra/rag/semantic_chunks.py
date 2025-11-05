@@ -3,6 +3,7 @@
 # https://github.com/FullStackRetrieval-com/RetrievalTutorials/blob/main/tutorials/LevelsOfTextSplitting/5_Levels_Of_Text_Splitting.ipynb
 # https://python.langchain.com/docs/how_to/embed_text/
 import logging
+import uuid
 from typing import List, Any
 from langchain_core.documents import Document
 from langchain_experimental.text_splitter import SemanticChunker
@@ -58,7 +59,7 @@ class SemanticChunks(RagChunker):
             source = document.metadata["source"]
             for i, chunk in enumerate(chunks):
                 if document.metadata["source"]:
-                    chunk.id = f"{source}-{i}"
+                    chunk.id = f"{uuid.uuid4()}"
             logger.info(f"{len(chunks)} chunks generated successfully")
             return chunks
         except Exception as e:

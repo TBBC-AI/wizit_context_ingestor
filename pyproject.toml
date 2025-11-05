@@ -11,10 +11,13 @@ dependencies = [
     "langchain-chroma>=0.2.6",
     "langchain-experimental>=0.3.4",
     "langchain-google-vertexai>=2.0.28",
+    "langchain-postgres>=0.0.16",
     "langchain-redis>=0.2.3",
     "langgraph>=0.6.8",
     "pillow>=11.3.0",
+    "psycopg2-binary>=2.9.11",
     "pymupdf>=1.26.4",
+    "sqlalchemy[asyncio]>=2.0.43",
 ]
 
 [dependency-groups]

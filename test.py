@@ -18,6 +18,7 @@ CHROMA_HOST = os.environ.get("REDIS_CONNECTION_STRING", "")
 CHROMA_COLLECTION_NAME = os.environ.get("CHROMA_COLLECTION_NAME", "")
 CHROMA_CLOUD_API_KEY = os.environ.get("CHROMA_CLOUD_API_KEY", "")
 CHROMA_CLOUD_TENANT = os.environ.get("CHROMA_CLOUD_TENANT", "")
+PG_CONNECTION = os.environ.get("PG_CONNECTION", "")
 LANGSMITH_API_KEY = os.environ.get("LANGSMITH_API_KEY", "")
 LANGCHAIN_PROJECT = os.environ.get("LANGCHAIN_PROJECT", "")
 gcp_sa_path = os.path.join(os.path.dirname(__file__), "credentials", "gcp_sa.json")
@@ -81,6 +82,9 @@ if __name__ == "__main__":
             # "chroma_cloud_api_key": CHROMA_CLOUD_API_KEY,
             # "tenant": CHROMA_CLOUD_TENANT,
             # "database": CHROMA_COLLECTION_NAME,
+            # text-multilingual-embedding-002
+            # postgresql://postgres.mitczeqkurkhkfsapeyh:[YOUR-PASSWORD]@aws-1-us-east-2.pooler.supabase.com:6543/postgres
+            print(PG_CONNECTION)
             deelab_chunks_manager = ChunksManager(
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
@@ -88,18 +92,27 @@ if __name__ == "__main__":
                 LANGSMITH_API_KEY,
                 LANGCHAIN_PROJECT,
                 "local",
-                "chroma",
+                "pg",
                 {
-                    "chroma_cloud_api_key": CHROMA_CLOUD_API_KEY,
-                    "tenant": CHROMA_CLOUD_TENANT,
-                    "database": CHROMA_COLLECTION_NAME,
+                    "pg_conn": {
+                        "pg_connection": PG_CONNECTION,
+                    },
+                    "kdb_config": {
+                        "embeddings_vectors_table_name": "langchain_pg_embedding_b",
+                        "records_manager_table_name": "langchain_record_manager_b",
+                        "content_column": "document",
+                        "metadata_json_column": "metadata",
+                        "id_column": "id",
+                        "vector_size": 768,
+                    },
                 },
             )
 
-            asyncio.run(
+            # asyncio.run(deelab_chunks_manager.provision_vector_store())
+            chunks = asyncio.run(
                 deelab_chunks_manager.gen_context_chunks(file_name, "tmp", "tmp")
             )
-
+            asyncio.run(deelab_chunks_manager.index_documents_in_vector_store(chunks))
             # deelab_chunks_manager.gen_context_chunks(
             #     file_name, S3_ORIGIN_BUCKET_NAME, S3_TARGET_BUCKET_NAME
             # )

@@ -46,26 +46,29 @@ class ChromaEmbeddingsManager(EmbeddingsManager):
             logger.error(f"Failed to initialize ChromaEmbeddingsManager: {str(e)}")
             raise
 
-    def configure_vector_store(
+    async def configure_vector_store(
         self,
         table_name: str = "",
         vector_size: int = 768,
         content_column: str = "document",
         id_column: str = "id",
+        metadata_json_column: str = "cmetadata",
+        pg_record_manager: str = "postgres/langchain_pg_collection",
     ):
         """Configure the vector store."""
         pass
 
-    def init_vector_store(
+    async def init_vector_store(
         self,
         table_name: str = "",
         content_column: str = "document",
+        metadata_json_column: str = "cmetadata",
         id_column: str = "id",
     ):
         """Initialize the vector store."""
         pass
 
-    def index_documents(self, documents: list[Document]):
+    async def index_documents(self, documents: list[Document]):
         """
         Add documents to the vector store with their embeddings.
 
@@ -85,7 +88,7 @@ class ChromaEmbeddingsManager(EmbeddingsManager):
         """
         try:
             logger.info(f"Indexing {len(documents)} documents in vector store")
-            self.chroma.add_documents(documents)
+            await self.chroma.aadd_documents(documents)
         except Exception as e:
             logger.error(f"Error indexing documents: {str(e)}")
             raise
@@ -110,12 +113,14 @@ class ChromaEmbeddingsManager(EmbeddingsManager):
             logger.error(f"Error deleting documents by ID: {str(e)}")
             raise
 
-    def delete_documents_by_metadata_key(self, metadata_key: str, metadata_value: str):
+    async def delete_documents_by_metadata_key(
+        self, metadata_key: str, metadata_value: str
+    ):
         """
         Delete documents by filter from the vector store.
         """
         try:
-            self.chroma.delete(where={metadata_key: metadata_value})
+            await self.chroma.adelete(where={metadata_key: metadata_value})
         except Exception as error:
             logger.error(
                 f"Error deleting documents by filter: {str(filter)}, error: {error} "

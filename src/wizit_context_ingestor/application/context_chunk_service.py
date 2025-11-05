@@ -39,7 +39,7 @@ class ContextChunksInDocumentService:
         self.rag_chunker = rag_chunker
         self.embeddings_manager = embeddings_manager
         self.target_language = target_language
-        self.embeddings_manager.init_vector_store()
+        # self.embeddings_manager.init_vector_store()
         self.chat_model = self.ai_application_service.load_chat_model()
         # TODO
         self.context_additional_instructions = ""
@@ -205,24 +205,26 @@ class ContextChunksInDocumentService:
                 )
             )
             logger.info(f"Context chunks generated:{len(context_chunks)}")
-            # upsert validation
-            try:
-                print(f"deleting chunks: {file_key}")
-                self.delete_document_context_chunks(file_key)
-            except Exception as e:
-                logger.error(f"could not delete by source: {e}")
-            self.embeddings_manager.index_documents(context_chunks)
+            # # upsert validation
+            # try:
+            #     print(f"deleting chunks: {file_key}")
+            #     # self.delete_document_context_chunks(file_key)
+            # except Exception as e:
+            #     logger.error(f"could not delete by source: {e}")
+            # # await self.embeddings_manager.configure_vector_store()
+            # await self.embeddings_manager.init_vector_store()
+            # await self.embeddings_manager.index_documents(context_chunks)
             return context_chunks
         except Exception as e:
-            logger.error("Error get_context_chunks_in_document")
+            logger.error(f"Error: {str(e)}")
             raise e
 
-    def delete_document_context_chunks(self, file_key: str):
+    async def delete_document_context_chunks(self, file_key: str):
         """
         Delete the context chunks in a document.
         """
         try:
-            self.embeddings_manager.delete_documents_by_metadata_key(
+            await self.embeddings_manager.delete_documents_by_metadata_key(
                 self.metadata_source, file_key
             )
         except Exception as e:

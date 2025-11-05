@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Literal
 
 
-class StorageServices(Enum):
+class StorageServices(str, Enum):
     S3 = "s3"
     LOCAL = "local"
 
