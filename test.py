@@ -95,26 +95,22 @@ if __name__ == "__main__":
                 "local",
                 "pg",
                 {
-                    "pg_conn": {
-                        "pg_connection": PG_CONNECTION,
-                    },
-                    "kdb_config": {
-                        "embeddings_vectors_table_name": "langchain_pg_embedding_3072",
-                        "records_manager_table_name": "langchain_record_manager_3072",
-                        "content_column": "document",
-                        "metadata_json_column": "metadata",
-                        "id_column": "id",
-                        "vector_size": 3072,
-                    },
+                    "pg_connection": PG_CONNECTION,
+                    "embeddings_vectors_table_name": "langchain_pg_embedding_sync_prov",
+                    "records_manager_table_name": "langchain_record_manager_sync_prov",
+                    "content_column": "document",
+                    "metadata_json_column": "metadata",
+                    "id_column": "id",
+                    "vector_size": 3072,
                 },
                 embeddings_model_id="gemini-embedding-001",
             )
 
-            # asyncio.run(deelab_chunks_manager.provision_vector_store())
-            chunks = asyncio.run(
-                deelab_chunks_manager.gen_context_chunks(file_name, "tmp", "tmp")
-            )
-            asyncio.run(deelab_chunks_manager.index_documents_in_vector_store(chunks))
+            # deelab_chunks_manager.provision_vector_store()
+            # chunks = asyncio.run(
+            #     deelab_chunks_manager.gen_context_chunks(file_name, "tmp", "tmp")
+            # )
+            # deelab_chunks_manager.index_documents_in_vector_store(chunks)
         elif operation == "query":
             deelab_chunks_manager = ChunksManager(
                 GCP_PROJECT_ID,
@@ -125,24 +121,18 @@ if __name__ == "__main__":
                 "local",
                 "pg",
                 {
-                    "pg_conn": {
-                        "pg_connection": PG_CONNECTION,
-                    },
-                    "kdb_config": {
-                        "embeddings_vectors_table_name": "langchain_pg_embedding_b",
-                        "records_manager_table_name": "langchain_record_manager_b",
-                        "content_column": "document",
-                        "metadata_json_column": "metadata",
-                        "id_column": "id",
-                        "vector_size": 768,
-                    },
+                    "pg_connection": PG_CONNECTION,
+                    "embeddings_vectors_table_name": "langchain_pg_embedding_sync_prov",
+                    "records_manager_table_name": "langchain_record_manager_sync_prov",
+                    "content_column": "document",
+                    "metadata_json_column": "metadata",
+                    "id_column": "id",
+                    "vector_size": 3072,
                 },
                 embeddings_model_id="gemini-embedding-001",
             )
-            asyncio.run(
-                deelab_chunks_manager.search_records(
-                    "Mi auto resultó con daños en una guerra, estos daños los cubre la póliza?"
-                )
+            deelab_chunks_manager.search_records(
+                "Mi auto resultó con daños en una guerra, estos daños los cubre la póliza?"
             )
 
             # deelab_chunks_manager.gen_context_chunks(

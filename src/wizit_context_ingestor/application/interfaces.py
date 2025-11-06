@@ -79,70 +79,49 @@ class EmbeddingsManager(ABC):
     """Interface for embeddings managers."""
 
     @abstractmethod
-    async def configure_vector_store(
+    def configure_vector_store(
         self,
-        table_name: str = "tenant_embeddings",
-        vector_size: int = 768,
-        content_column: str = "document",
-        id_column: str = "id",
-        metadata_json_column: str = "cmetadata",
-        pg_record_manager: str = "postgres/langchain_pg_collection",
     ):
         """Configure the vector store."""
         pass
 
-    @abstractmethod
-    async def init_vector_store(
-        self,
-        table_name: str = "tenant_embeddings",
-        content_column: str = "document",
-        metadata_json_column: str = "cmetadata",
-        id_column: str = "id",
-    ):
-        """Initialize the vector store."""
-        pass
+    # @abstractmethod
+    # async def init_vector_store(
+    #     self,
+    #     table_name: str = "tenant_embeddings",
+    #     content_column: str = "document",
+    #     metadata_json_column: str = "cmetadata",
+    #     id_column: str = "id",
+    # ):
+    #     """Initialize the vector store."""
+    #     pass
 
     @abstractmethod
-    async def retrieve_vector_store(
+    def retrieve_vector_store(
         self,
-        table_name: str = "langchain_pg_embedding",
-        content_column: str = "document",
-        metadata_json_column: str = "cmetadata",
-        id_column: str = "id",
-        pg_record_manager: str = "langchain_record_manager",
     ) -> tuple[PGVectorStore, SQLRecordManager]:
         """Retrieve the vector store."""
         pass
 
     @abstractmethod
-    async def retrieve_record_manager(
-        self, pg_record_manager: str
-    ) -> SQLRecordManager | None:
-        pass
-
-    @abstractmethod
-    async def index_documents(
+    def index_documents(
         self,
-        vector_store: PGVectorStore,
-        record_manager: SQLRecordManager,
         docs: list[Document],
     ) -> IndexingResult:
         """Index documents."""
         pass
 
     @abstractmethod
-    async def search_records(
+    def search_records(
         self,
-        vector_store: PGVectorStore,
         query: str,
     ) -> list[Document]:
         """Search documents."""
         pass
 
     @abstractmethod
-    async def create_index(
+    def create_index(
         self,
-        vector_store: PGVectorStore,
     ):
         pass
 

@@ -7,14 +7,10 @@ from langsmith import Client, tracing_context
 
 from .application.context_chunk_service import ContextChunksInDocumentService
 from .application.kdb_service import KdbService
-from .application.transcription_service import TranscriptionService
-from .data.kdb import KdbServices, kdb_services
-from .data.storage import StorageServices, storage_services
+from .data.storage import StorageServices
 from .infra.persistence.local_storage import LocalStorageService
 from .infra.persistence.s3_storage import S3StorageService
-from .infra.rag.chroma_embeddings import ChromaEmbeddingsManager
 from .infra.rag.pg_embeddings import PgEmbeddingsManager
-from .infra.rag.redis_embeddings import RedisEmbeddingsManager
 from .infra.rag.semantic_chunks import SemanticChunks
 from .infra.secrets.aws_secrets_manager import AwsSecretsManager
 from .infra.vertex_model import VertexModels
@@ -93,14 +89,11 @@ class ChunksManager:
         self.langsmith_api_key = langsmith_api_key
         self.langsmith_project_name = langsmith_project_name
         self.langsmith_client = Client(api_key=self.langsmith_api_key)
-        self.pg_embeddings_manager = PgEmbeddingsManager(
-            self.embeddings_model, **self.kdb_params["pg_conn"]
-        )
+        self.kdb_manager = KdbManager(self.embeddings_model, "pg", self.kdb_params)
+        self.pg_embeddings_manager = self.kdb_manager.retrieve_kdb_service()
         self.rag_chunker = SemanticChunks(self.embeddings_model)
-        self.kdb_manager = KdbService(
-            self.rag_chunker,
+        self.kdb_service = KdbService(
             self.pg_embeddings_manager,
-            **self.kdb_params["kdb_config"],
         )
 
     def _get_gcp_sa_dict(self, gcp_secret_name: str):
@@ -117,21 +110,21 @@ class ChunksManager:
         )
         return vertex_model
 
-    async def provision_vector_store(self):
+    def provision_vector_store(self):
         try:
-            await self.kdb_manager.configure_kdb()
-            await self.kdb_manager.create_vector_store_hsnw_index()
+            self.kdb_service.configure_kdb()
+            self.kdb_service.create_vector_store_hsnw_index()
         except Exception as e:
             logger.error(f"Error configuring vector store: {e}")
 
-    async def index_documents_in_vector_store(self, docs: list[Document]):
+    def index_documents_in_vector_store(self, docs: list[Document]):
         try:
-            await self.kdb_manager.index_documents_in_vector_store(docs)
+            self.kdb_service.index_documents_in_vector_store(docs)
         except Exception as e:
             logger.error(f"Error indexing documents in vector store: {e}")
 
-    async def search_records(self, query):
-        reply = await self.kdb_manager.search(query)
+    def search_records(self, query):
+        return self.kdb_service.search(query)
 
     def tracing(func):
         async def gen_tracing_context(self, *args, **kwargs):
@@ -160,9 +153,7 @@ class ChunksManager:
                     file_key, target_storage_route
                 )
             rag_chunker = SemanticChunks(self.embeddings_model)
-            kdb_manager = KdbManager(
-                self.embeddings_model, self.kdb_service, self.kdb_params["pg_conn"]
-            )
+            kdb_manager = KdbManager(self.embeddings_model, "pg", self.kdb_params)
             kdb_service = kdb_manager.retrieve_kdb_service()
             context_chunks_in_document_service = ContextChunksInDocumentService(
                 ai_application_service=self.vertex_model,

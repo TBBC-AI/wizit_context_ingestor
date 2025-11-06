@@ -1,11 +1,11 @@
 import logging
-from typing import List
 
 from langchain.indexes import IndexingResult, SQLRecordManager, aindex, index
 from langchain_core.documents import Document
 from langchain_postgres import PGEngine, PGVectorStore
 from langchain_postgres.v2.indexes import HNSWIndex
 from sqlalchemy.ext.asyncio import create_async_engine
+from typing_extensions import Literal
 
 from wizit_context_ingestor.application.interfaces import EmbeddingsManager
 
@@ -42,7 +42,17 @@ class PgEmbeddingsManager(EmbeddingsManager):
 
     __slots__ = ("embeddings_model", "pg_connection")
 
-    def __init__(self, embeddings_model, pg_connection: str):
+    def __init__(
+        self,
+        embeddings_model,
+        pg_connection: str,
+        embeddings_vectors_table_name: str = "langchain_pg_embedding",
+        vector_size: int = 768,
+        content_column: str = "document",
+        id_column: str = "id",
+        metadata_json_column: str = "cmetadata",
+        records_manager_table_name: str = "langchain_record_manager",
+    ):
         """
         Initialize the PgEmbeddingsManager.
 
@@ -59,124 +69,90 @@ class PgEmbeddingsManager(EmbeddingsManager):
         self.embeddings_model = embeddings_model
         self.vector_store = None
         self.record_manager = None
-        self.async_engine = create_async_engine(pg_connection)
-        self.pg_engine = PGEngine.from_engine(self.async_engine)
+        self.pg_engine = PGEngine.from_connection_string(pg_connection)
+        self.embeddings_vectors_table_name = embeddings_vectors_table_name
+        self.vector_size = vector_size
+        self.content_column = content_column
+        self.id_column = id_column
+        self.metadata_json_column = metadata_json_column
+        self.records_manager_table_name = records_manager_table_name
+        # self.async_engine = create_async_engine(pg_connection)
+        # self.pg_engine = PGEngine.from_engine(
+        #     self.async_engine
+        # )
         logger.info("PgEmbeddingsManager initialized")
 
-    async def configure_vector_store(
+    def configure_vector_store(
         self,
-        table_name: str = "langchain_pg_embedding",
-        vector_size: int = 768,
-        content_column: str = "document",
-        id_column: str = "id",
-        metadata_json_column: str = "cmetadata",
-        pg_record_manager: str = "langchain_record_manager",
     ):
         try:
-            await self.pg_engine.ainit_vectorstore_table(
-                table_name=table_name,
-                vector_size=vector_size,
-                content_column=content_column,
-                id_column=id_column,
-                metadata_json_column=metadata_json_column,
+            self.pg_engine.init_vectorstore_table(
+                table_name=self.embeddings_vectors_table_name,
+                vector_size=self.vector_size,
+                content_column=self.content_column,
+                id_column=self.id_column,
+                metadata_json_column=self.metadata_json_column,
             )
-
             record_manager = SQLRecordManager(
-                pg_record_manager, engine=self.async_engine, async_mode=True
+                self.records_manager_table_name,
+                db_url=self.pg_connection,
+                async_mode=False,
             )
-            await record_manager.acreate_schema()
+            record_manager.create_schema()
         except Exception as e:
             logger.error(f"Error configure_vector_store: {e}")
             raise
 
-    async def retrieve_vector_store(
+    def retrieve_vector_store(
         self,
-        table_name: str = "langchain_pg_embedding",
-        content_column: str = "document",
-        metadata_json_column: str = "cmetadata",
-        id_column: str = "id",
-        pg_record_manager: str = "langchain_record_manager",
     ) -> tuple[PGVectorStore, SQLRecordManager]:
         try:
-            vector_store = await PGVectorStore.create(
+            self.vector_store = PGVectorStore.create_sync(
                 embedding_service=self.embeddings_model,
                 engine=self.pg_engine,
-                table_name=table_name,
-                content_column=content_column,
-                metadata_json_column=metadata_json_column,
-                id_column=id_column,
+                table_name=self.embeddings_vectors_table_name,
+                content_column=self.content_column,
+                metadata_json_column=self.metadata_json_column,
+                id_column=self.id_column,
             )
-            record_manager = SQLRecordManager(
-                pg_record_manager, engine=self.async_engine, async_mode=True
+            self.record_manager = SQLRecordManager(
+                self.records_manager_table_name, db_url=self.pg_connection
             )
-            await record_manager.acreate_schema()
-            return (vector_store, record_manager)
+            return (self.vector_store, self.record_manager)
         except Exception as e:
             logger.error(f"Error retrieve vector store: ", e)
             raise e
 
-    async def retrieve_record_manager(
-        self, pg_record_manager: str
-    ) -> SQLRecordManager | None:
-        try:
-            return SQLRecordManager(
-                pg_record_manager,
-                engine=create_async_engine(url=self.pg_connection),
-                async_mode=True,
-            )
-        except Exception as e:
-            logger.error(f"Error retrieve record manager: ", e)
-            raise e
+    def check_vector_store_init(func):
+        """validate vector store initialization"""
 
-    async def init_vector_store(
-        self,
-        table_name: str = "langchain_pg_embedding",
-        content_column: str = "document",
-        metadata_json_column: str = "cmetadata",
-        id_column: str = "id",
-        pg_record_manager: str = "langchain_record_manager",
-    ):
-        self.vector_store = await PGVectorStore.create(
-            embedding_service=self.embeddings_model,
-            engine=self.pg_engine,
-            table_name=table_name,
-            content_column=content_column,
-            metadata_json_column=metadata_json_column,
-            id_column=id_column,
-        )
-        self.record_manager = SQLRecordManager(
-            pg_record_manager,
-            engine=create_async_engine(url=self.pg_connection),
-            async_mode=True,
-        )
+        def wrapper(self, *args, **kwargs):
+            if self.vector_store is None or self.record_manager is None:
+                self.retrieve_vector_store()
+            return func(self, *args, **kwargs)
 
-    async def create_index(
-        self,
-        vector_store: PGVectorStore,
-    ):
+        return wrapper
+
+    @check_vector_store_init
+    def create_index(self):
         try:
-            index = HNSWIndex()
-            await vector_store.aapply_vector_index(index)
+            if self.vector_size < 2000:
+                index = HNSWIndex()
+                self.vector_store.apply_vector_index(index)
+            else:
+                raise NotImplementedError(
+                    "Indexing for vector size > 2000 is not supported"
+                )
         except Exception as e:
             logger.info(f"Error creating index: {e}")
+            raise e
 
-    # def vector_store_initialized(func):
-    #     """validate vector store initialization"""
-
-    #     def validate_initialization(self, *args, **kwargs):
-    #         # Common validation logic
-    #         if self.vector_store is None:
-    #             raise Exception("Vector store not initialized")
-    #         if self.record_manager is None:
-    #             raise Exception("Record manager not initialized")
-    #         return func(self, *args, **kwargs)
-    #     return validate_initialization
-    # @vector_store_initialized
-    async def index_documents(
+    @check_vector_store_init
+    def index_documents(
         self,
-        vector_store: PGVectorStore,
-        record_manager: SQLRecordManager,
         docs: list[Document],
+        cleanup: Literal["incremental", "full", "scoped_full"] | None = "incremental",
+        source_id_key: str = "source",
     ) -> IndexingResult:
         """
         Index documents in the vector store with their embeddings.
@@ -200,85 +176,26 @@ class PgEmbeddingsManager(EmbeddingsManager):
         try:
             logger.info(f"Indexing {len(docs)} documents in vector store")
             # await self.vector_store.aadd_documents(docs)
-            return await aindex(
+            return index(
                 docs,
-                record_manager,
-                vector_store,
-                cleanup="incremental",
-                source_id_key="source",
+                self.record_manager,
+                self.vector_store,
+                cleanup=cleanup,
+                source_id_key=source_id_key,
             )
         except Exception as e:
             logger.error(f"Error indexing documents: {str(e)}")
             raise e
 
-    async def search_records(
+    @check_vector_store_init
+    def search_records(
         self,
-        vector_store: PGVectorStore,
         query: str,
     ) -> list[Document]:
         try:
             logger.info(f"Searching for '{query}' in vector store")
-            reply = await vector_store.asearch(
-                query=query, search_type="similarity", k=1
-            )
-            print(reply)
+            reply = self.vector_store.search(query=query, search_type="similarity", k=1)
             return reply
         except Exception as e:
             logger.error(f"Error indexing documents: {str(e)}")
             raise e
-
-    # @vector_store_initialized
-    # def get_documents_keys_by_source_id(self, source_id: str):
-    #     """
-    #     Get document keys by source ID from the vector store.
-    #     """
-    #     try:
-    #         return self.record_manager.list_keys(group_ids=[source_id])
-    #     except Exception as e:
-    #         logger.error(f"Error getting documents keys by source ID: {str(e)}")
-    #         raise
-
-    # @vector_store_initialized
-    # def delete_documents_by_source_id(self, source_id: str):
-    #     """
-    #     Delete documents by source ID from the vector store.
-    #     """
-    #     try:
-    #         objects_keys = self.get_documents_keys_by_source_id(source_id)
-    #         self.record_manager.delete_keys(objects_keys)
-    #         self.vector_store.delete(ids=objects_keys)
-    #     except Exception as e:
-    #         logger.error(f"Error deleting documents by source ID: {str(e)}")
-    #         raise
-
-    # def get_retriever(self, search_type: str = "mmr", k: int = 20):
-    #     """
-    #     Get a retriever interface to the vector store for semantic search.
-
-    #     This method returns a LangChain retriever object that can be used in retrieval
-    #     pipelines, retrieval-augmented generation, and other LangChain chains.
-
-    #     Args:
-    #       search_type: The search algorithm to use. Options include:
-    #                    - "similarity" (standard cosine similarity)
-    #                    - "mmr" (Maximum Marginal Relevance, balances relevance with diversity)
-    #                    - "similarity_score_threshold" (filters by minimum similarity)
-    #       k: The number of documents to retrieve (default: 20)
-
-    #     Returns:
-    #       Retriever: A LangChain Retriever object that can be used in chains and pipelines
-
-    #     Raises:
-    #       Exception: If there's an error creating the retriever
-
-    #     Example:
-    #       >>> retriever = pg_manager.get_retriever(search_type="mmr", k=5)
-    #       >>> docs = retriever.get_relevant_documents("quantum computing")
-    #     """
-    #     try:
-    #         return self.vector_store.as_retriever(
-    #             search_type=search_type, search_kwargs={"k": k}
-    #         )
-    #     except Exception as e:
-    #         logger.info(f"failed to get vector store as retriever {str(e)}")
-    #         raise
