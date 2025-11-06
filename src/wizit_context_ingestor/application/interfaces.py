@@ -3,15 +3,16 @@ Application interfaces defining application layer contracts.
 """
 
 from abc import ABC, abstractmethod
-from ..domain.models import ParsedDocPage, ParsedDoc
-from typing import List, Union, Optional
-from langchain_core.documents import Document
+from typing import List, Optional, Union
+
+from langchain.indexes import IndexingResult, SQLRecordManager
 from langchain_aws import ChatBedrockConverse
+from langchain_core.documents import Document
 from langchain_google_vertexai import ChatVertexAI
 from langchain_google_vertexai.model_garden import ChatAnthropicVertex
-from langchain.indexes import SQLRecordManager
 from langchain_postgres import PGVectorStore
-from langchain.indexes import IndexingResult
+
+from ..domain.models import ParsedDoc, ParsedDocPage
 
 
 class TranscriptionService(ABC):
@@ -127,6 +128,22 @@ class EmbeddingsManager(ABC):
         docs: list[Document],
     ) -> IndexingResult:
         """Index documents."""
+        pass
+
+    @abstractmethod
+    async def search_records(
+        self,
+        vector_store: PGVectorStore,
+        query: str,
+    ) -> list[Document]:
+        """Search documents."""
+        pass
+
+    @abstractmethod
+    async def create_index(
+        self,
+        vector_store: PGVectorStore,
+    ):
         pass
 
     # @abstractmethod

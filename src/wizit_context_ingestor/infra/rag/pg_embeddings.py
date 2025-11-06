@@ -1,9 +1,12 @@
-from langchain_core.documents import Document
-from langchain.indexes import index, SQLRecordManager, aindex, IndexingResult
-from typing import List
 import logging
-from langchain_postgres import PGVectorStore, PGEngine
+from typing import List
+
+from langchain.indexes import IndexingResult, SQLRecordManager, aindex, index
+from langchain_core.documents import Document
+from langchain_postgres import PGEngine, PGVectorStore
+from langchain_postgres.v2.indexes import HNSWIndex
 from sqlalchemy.ext.asyncio import create_async_engine
+
 from wizit_context_ingestor.application.interfaces import EmbeddingsManager
 
 logger = logging.getLogger(__name__)
@@ -77,6 +80,7 @@ class PgEmbeddingsManager(EmbeddingsManager):
                 id_column=id_column,
                 metadata_json_column=metadata_json_column,
             )
+
             record_manager = SQLRecordManager(
                 pg_record_manager, engine=self.async_engine, async_mode=True
             )
@@ -146,6 +150,16 @@ class PgEmbeddingsManager(EmbeddingsManager):
             async_mode=True,
         )
 
+    async def create_index(
+        self,
+        vector_store: PGVectorStore,
+    ):
+        try:
+            index = HNSWIndex()
+            await vector_store.aapply_vector_index(index)
+        except Exception as e:
+            logger.info(f"Error creating index: {e}")
+
     # def vector_store_initialized(func):
     #     """validate vector store initialization"""
 
@@ -193,6 +207,22 @@ class PgEmbeddingsManager(EmbeddingsManager):
                 cleanup="incremental",
                 source_id_key="source",
             )
+        except Exception as e:
+            logger.error(f"Error indexing documents: {str(e)}")
+            raise e
+
+    async def search_records(
+        self,
+        vector_store: PGVectorStore,
+        query: str,
+    ) -> list[Document]:
+        try:
+            logger.info(f"Searching for '{query}' in vector store")
+            reply = await vector_store.asearch(
+                query=query, search_type="similarity", k=1
+            )
+            print(reply)
+            return reply
         except Exception as e:
             logger.error(f"Error indexing documents: {str(e)}")
             raise e

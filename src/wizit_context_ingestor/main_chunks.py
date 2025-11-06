@@ -1,22 +1,24 @@
 import json
 from logging import getLogger
-from typing import Dict, Any, Literal
-from .infra.vertex_model import VertexModels
-from .application.transcription_service import TranscriptionService
+from typing import Any, Dict, Literal
+
+from langchain_core.documents import Document
+from langsmith import Client, tracing_context
+
 from .application.context_chunk_service import ContextChunksInDocumentService
 from .application.kdb_service import KdbService
-from .infra.persistence.s3_storage import S3StorageService
+from .application.transcription_service import TranscriptionService
+from .data.kdb import KdbServices, kdb_services
+from .data.storage import StorageServices, storage_services
 from .infra.persistence.local_storage import LocalStorageService
-from .infra.rag.semantic_chunks import SemanticChunks
-from .infra.rag.redis_embeddings import RedisEmbeddingsManager
+from .infra.persistence.s3_storage import S3StorageService
 from .infra.rag.chroma_embeddings import ChromaEmbeddingsManager
 from .infra.rag.pg_embeddings import PgEmbeddingsManager
+from .infra.rag.redis_embeddings import RedisEmbeddingsManager
+from .infra.rag.semantic_chunks import SemanticChunks
 from .infra.secrets.aws_secrets_manager import AwsSecretsManager
-from .data.storage import storage_services, StorageServices
-from .data.kdb import kdb_services, KdbServices
+from .infra.vertex_model import VertexModels
 from .utils.file_utils import validate_file_name_format
-from langsmith import Client, tracing_context
-from langchain_core.documents import Document
 
 logger = getLogger(__name__)
 
@@ -118,6 +120,7 @@ class ChunksManager:
     async def provision_vector_store(self):
         try:
             await self.kdb_manager.configure_kdb()
+            await self.kdb_manager.create_vector_store_hsnw_index()
         except Exception as e:
             logger.error(f"Error configuring vector store: {e}")
 
@@ -126,6 +129,9 @@ class ChunksManager:
             await self.kdb_manager.index_documents_in_vector_store(docs)
         except Exception as e:
             logger.error(f"Error indexing documents in vector store: {e}")
+
+    async def search_records(self, query):
+        reply = await self.kdb_manager.search(query)
 
     def tracing(func):
         async def gen_tracing_context(self, *args, **kwargs):

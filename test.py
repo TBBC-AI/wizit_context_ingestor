@@ -1,11 +1,12 @@
-import os
 import asyncio
-from dotenv import load_dotenv
-from src.wizit_context_ingestor import ChunksManager, TranscriptionManager
+import os
+import sys
 
 # from src.wizit_context_ingestor.infra.persistence import LocalStorageService
 import pyinstrument
-import sys
+from dotenv import load_dotenv
+
+from src.wizit_context_ingestor import ChunksManager, TranscriptionManager
 
 load_dotenv()
 
@@ -98,6 +99,36 @@ if __name__ == "__main__":
                         "pg_connection": PG_CONNECTION,
                     },
                     "kdb_config": {
+                        "embeddings_vectors_table_name": "langchain_pg_embedding_3072",
+                        "records_manager_table_name": "langchain_record_manager_3072",
+                        "content_column": "document",
+                        "metadata_json_column": "metadata",
+                        "id_column": "id",
+                        "vector_size": 3072,
+                    },
+                },
+                embeddings_model_id="gemini-embedding-001",
+            )
+
+            # asyncio.run(deelab_chunks_manager.provision_vector_store())
+            chunks = asyncio.run(
+                deelab_chunks_manager.gen_context_chunks(file_name, "tmp", "tmp")
+            )
+            asyncio.run(deelab_chunks_manager.index_documents_in_vector_store(chunks))
+        elif operation == "query":
+            deelab_chunks_manager = ChunksManager(
+                GCP_PROJECT_ID,
+                GCP_PROJECT_LOCATION,
+                gcp_secret_name,
+                LANGSMITH_API_KEY,
+                LANGCHAIN_PROJECT,
+                "local",
+                "pg",
+                {
+                    "pg_conn": {
+                        "pg_connection": PG_CONNECTION,
+                    },
+                    "kdb_config": {
                         "embeddings_vectors_table_name": "langchain_pg_embedding_b",
                         "records_manager_table_name": "langchain_record_manager_b",
                         "content_column": "document",
@@ -106,13 +137,14 @@ if __name__ == "__main__":
                         "vector_size": 768,
                     },
                 },
+                embeddings_model_id="gemini-embedding-001",
+            )
+            asyncio.run(
+                deelab_chunks_manager.search_records(
+                    "Mi auto resultó con daños en una guerra, estos daños los cubre la póliza?"
+                )
             )
 
-            # asyncio.run(deelab_chunks_manager.provision_vector_store())
-            chunks = asyncio.run(
-                deelab_chunks_manager.gen_context_chunks(file_name, "tmp", "tmp")
-            )
-            asyncio.run(deelab_chunks_manager.index_documents_in_vector_store(chunks))
             # deelab_chunks_manager.gen_context_chunks(
             #     file_name, S3_ORIGIN_BUCKET_NAME, S3_TARGET_BUCKET_NAME
             # )
