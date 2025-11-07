@@ -131,9 +131,7 @@ if __name__ == "__main__":
                 },
                 embeddings_model_id="gemini-embedding-001",
             )
-            deelab_chunks_manager.search_records(
-                "Mi auto resultó con daños en una guerra, estos daños los cubre la póliza?"
-            )
+            deelab_chunks_manager.search_records("")
 
             # deelab_chunks_manager.gen_context_chunks(
             #     file_name, S3_ORIGIN_BUCKET_NAME, S3_TARGET_BUCKET_NAME
