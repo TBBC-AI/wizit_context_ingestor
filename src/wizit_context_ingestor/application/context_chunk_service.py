@@ -77,7 +77,8 @@ class ContextChunksInDocumentService:
                 },
             )
             chunk.page_content = f"<context>\n{result['context']}\n</context>\n <content>\n{chunk.page_content}\n</content>"
-            chunk.metadata["context"] = result["context"]
+            # INFO: prevent context in metadata because it's already included in the chunk content, also generates issues when text is long
+            # chunk.metadata["context"] = result["context"]
             if chunk_metadata:
                 for key, value in chunk_metadata.items():
                     chunk.metadata[key] = value
