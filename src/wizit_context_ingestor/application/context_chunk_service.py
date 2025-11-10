@@ -51,7 +51,7 @@ class ContextChunksInDocumentService:
         workflow,
         markdown_content: str,
         chunk: Document,
-        chunk_metadata: Optional[Dict[str, Any]] = None,
+        chunk_metadata: dict[str, Any] | None = None,
     ) -> Document:
         """Retrieve context chunks in document."""
         try:
@@ -79,7 +79,7 @@ class ContextChunksInDocumentService:
             chunk.page_content = f"<context>\n{result['context']}\n</context>\n <content>\n{chunk.page_content}\n</content>"
             # INFO: prevent context in metadata because it's already included in the chunk content, also generates issues when text is long
             # chunk.metadata["context"] = result["context"]
-            if chunk_metadata:
+            if chunk_metadata is not None:
                 for key, value in chunk_metadata.items():
                     chunk.metadata[key] = value
             return chunk
@@ -90,9 +90,9 @@ class ContextChunksInDocumentService:
     async def retrieve_context_chunks_in_document_with_workflow(
         self,
         markdown_content: str,
-        chunks: List[Document],
-        chunks_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[Document]:
+        chunks: list[Document],
+        chunks_metadata: dict[str, Any] | None = None,
+    ) -> list[Document]:
         """Retrieve context chunks in document."""
         try:
             context_workflow = ContextWorkflow(
@@ -117,7 +117,9 @@ class ContextChunksInDocumentService:
             logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
             raise
 
-    async def get_context_chunks_in_document(self, file_key: str, file_tags: dict = {}):
+    async def get_context_chunks_in_document(
+        self, file_key: str, file_tags: dict | None = None
+    ):
         """
         Get the context chunks in a document.
         """

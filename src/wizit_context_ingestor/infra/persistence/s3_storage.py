@@ -1,10 +1,12 @@
-from ...application.interfaces import PersistenceService
-from ...domain.models import ParsedDoc
-from boto3 import client as boto3_client
 import logging
 import os
-from botocore.exceptions import ClientError
 from typing import Optional
+
+from boto3 import client as boto3_client
+from botocore.exceptions import ClientError
+
+from ...application.interfaces import PersistenceService
+from ...domain.models import ParsedDoc
 
 logger = logging.getLogger(__name__)
 
@@ -131,5 +133,14 @@ class S3StorageService(PersistenceService):
         Args:
             file_key: The key (path) to retrieve tags
         """
-        response = self.s3.get_object_tagging(Bucket=bucket_name, Key=file_key)
-        return {item["Key"]: item["Value"] for item in response["TagSet"]}
+        try:
+            response = self.s3.get_object_tagging(Bucket=bucket_name, Key=file_key)
+            if response["TagSet"] and len(response["TagSet"]) > 0:
+                logger.info(f"Successfully retrieved file tags from S3")
+                return {item["Key"]: item["Value"] for item in response["TagSet"]}
+            else:
+                logger.info(f"No tags found for file {file_key}")
+                return None
+        except Exception as e:
+            logger.error(f"Error retrieving file tags from S3: {str(e)}")
+            return None

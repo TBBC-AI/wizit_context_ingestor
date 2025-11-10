@@ -1,8 +1,9 @@
-from ...application.interfaces import PersistenceService
-from ...domain.models import ParsedDoc
-from typing import Optional
 import logging
 import os
+from typing import Optional
+
+from ...application.interfaces import PersistenceService
+from ...domain.models import ParsedDoc
 
 logger = logging.getLogger(__name__)
 
