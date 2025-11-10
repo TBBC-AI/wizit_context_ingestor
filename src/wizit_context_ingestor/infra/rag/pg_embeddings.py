@@ -50,7 +50,7 @@ class PgEmbeddingsManager(EmbeddingsManager):
         vector_size: int = 768,
         content_column: str = "document",
         id_column: str = "id",
-        metadata_json_column: str = "cmetadata",
+        metadata_json_column: str = "metadata",
         records_manager_table_name: str = "langchain_record_manager",
     ):
         """

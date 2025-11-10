@@ -1,6 +1,8 @@
-from langchain_core.documents import Document
-from langchain_chroma import Chroma
 import logging
+
+from langchain_chroma import Chroma
+from langchain_core.documents import Document
+
 from ...application.interfaces import EmbeddingsManager
 
 # load_dotenv()
@@ -52,7 +54,7 @@ class ChromaEmbeddingsManager(EmbeddingsManager):
         vector_size: int = 768,
         content_column: str = "document",
         id_column: str = "id",
-        metadata_json_column: str = "cmetadata",
+        metadata_json_column: str = "metadata",
         pg_record_manager: str = "postgres/langchain_pg_collection",
     ):
         """Configure the vector store."""
@@ -62,7 +64,7 @@ class ChromaEmbeddingsManager(EmbeddingsManager):
         self,
         table_name: str = "",
         content_column: str = "document",
-        metadata_json_column: str = "cmetadata",
+        metadata_json_column: str = "metadata",
         id_column: str = "id",
     ):
         """Initialize the vector store."""

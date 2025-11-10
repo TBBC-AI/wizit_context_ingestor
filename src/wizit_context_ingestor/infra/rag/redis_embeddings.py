@@ -1,7 +1,8 @@
+import logging
+from typing import List
+
 from langchain_core.documents import Document
 from langchain_redis import RedisConfig, RedisVectorStore
-from typing import List
-import logging
 
 # from dotenv import load_dotenv
 from ...application.interfaces import EmbeddingsManager
@@ -55,7 +56,7 @@ class RedisEmbeddingsManager(EmbeddingsManager):
         vector_size: int = 768,
         content_column: str = "document",
         id_column: str = "id",
-        metadata_json_column: str = "cmetadata",
+        metadata_json_column: str = "metadata",
         pg_record_manager: str = "postgres/langchain_pg_collection",
     ):
         """Configure the vector store."""
@@ -65,7 +66,7 @@ class RedisEmbeddingsManager(EmbeddingsManager):
         self,
         table_name: str = "langchain_pg_embedding",
         content_column: str = "document",
-        metadata_json_column: str = "cmetadata",
+        metadata_json_column: str = "metadata",
         id_column: str = "id",
     ):
         """Initialize the vector store."""

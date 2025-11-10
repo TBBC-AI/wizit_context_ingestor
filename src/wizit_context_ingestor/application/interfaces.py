@@ -90,7 +90,7 @@ class EmbeddingsManager(ABC):
     #     self,
     #     table_name: str = "tenant_embeddings",
     #     content_column: str = "document",
-    #     metadata_json_column: str = "cmetadata",
+    #     metadata_json_column: str = "metadata",
     #     id_column: str = "id",
     # ):
     #     """Initialize the vector store."""
