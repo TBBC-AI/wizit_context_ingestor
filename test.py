@@ -107,10 +107,10 @@ if __name__ == "__main__":
             )
 
             # deelab_chunks_manager.provision_vector_store()
-            # chunks = asyncio.run(
-            #     deelab_chunks_manager.gen_context_chunks(file_name, "tmp", "tmp")
-            # )
-            # deelab_chunks_manager.index_documents_in_vector_store(chunks)
+            chunks = asyncio.run(
+                deelab_chunks_manager.gen_context_chunks(file_name, "tmp", "tmp")
+            )
+            deelab_chunks_manager.index_documents_in_vector_store(chunks)
         elif operation == "query":
             deelab_chunks_manager = ChunksManager(
                 GCP_PROJECT_ID,

@@ -19,16 +19,25 @@ from .utils.file_utils import validate_file_name_format
 logger = getLogger(__name__)
 
 
-class KdbManager:
+class PgKdbManager:
     def __init__(
-        self, embeddings_model, kdb_service: Literal["pg"], kdb_params: Dict[Any, Any]
+        self,
+        embeddings_model,
+        kdb_params: Dict[Any, Any],
     ):
-        self.kdb_service = kdb_service
-        self.kdb_params = kdb_params
         self.embeddings_model = embeddings_model
+        self.kdb_params = kdb_params
+        self.pg_embeddings_manager = PgEmbeddingsManager(embeddings_model, **kdb_params)
+        self.kdb_service = KdbService(
+            self.pg_embeddings_manager,
+        )
 
-    def retrieve_kdb_service(self):
-        return PgEmbeddingsManager(self.embeddings_model, **self.kdb_params)
+    def provision_vector_store(self):
+        try:
+            self.kdb_service.configure_kdb()
+            self.kdb_service.create_vector_store_hsnw_index()
+        except Exception as e:
+            logger.error(f"Error configuring vector store: {e}")
 
 
 class PersistenceManager:
@@ -66,7 +75,7 @@ class ChunksManager:
         langsmith_api_key: str,
         langsmith_project_name: str,
         storage_service: Literal["s3", "local"],
-        kdb_service: Literal["pg"],
+        kdb_service_name: Literal["pg"],
         kdb_params: Dict[Any, Any],
         llm_model_id: str = "claude-3-5-haiku@20241022",
         embeddings_model_id: str = "text-multilingual-embedding-002",
@@ -81,7 +90,7 @@ class ChunksManager:
         self.gcp_sa_dict = self._get_gcp_sa_dict(gcp_secret_name)
         self.storage_service = storage_service
         self.kdb_params = kdb_params
-        self.kdb_service = kdb_service
+        self.kdb_service_name = kdb_service_name
         self.vertex_model = self._get_vertex_model()
         self.embeddings_model = self.vertex_model.load_embeddings_model(
             embeddings_model_id
@@ -89,12 +98,10 @@ class ChunksManager:
         self.langsmith_api_key = langsmith_api_key
         self.langsmith_project_name = langsmith_project_name
         self.langsmith_client = Client(api_key=self.langsmith_api_key)
-        self.kdb_manager = KdbManager(self.embeddings_model, "pg", self.kdb_params)
-        self.pg_embeddings_manager = self.kdb_manager.retrieve_kdb_service()
+        self.pg_kdb_manager = PgKdbManager(self.embeddings_model, self.kdb_params)
+        self.pg_embeddings_manager = self.pg_kdb_manager.pg_embeddings_manager
+        self.kdb_service = self.pg_kdb_manager.kdb_service
         self.rag_chunker = SemanticChunks(self.embeddings_model)
-        self.kdb_service = KdbService(
-            self.pg_embeddings_manager,
-        )
 
     def _get_gcp_sa_dict(self, gcp_secret_name: str):
         vertex_gcp_sa = self.aws_secrets_manager.get_secret(gcp_secret_name)
@@ -153,13 +160,13 @@ class ChunksManager:
                     file_key, target_storage_route
                 )
             rag_chunker = SemanticChunks(self.embeddings_model)
-            kdb_manager = KdbManager(self.embeddings_model, "pg", self.kdb_params)
-            kdb_service = kdb_manager.retrieve_kdb_service()
+            # kdb_manager = KdbManager(self.embeddings_model, self.kdb_params)
+            # kdb_service = kdb_manager.retrieve_kdb_service()
             context_chunks_in_document_service = ContextChunksInDocumentService(
                 ai_application_service=self.vertex_model,
                 persistence_service=persistence_service,
                 rag_chunker=rag_chunker,
-                embeddings_manager=kdb_service,
+                embeddings_manager=self.pg_embeddings_manager,
                 target_language=self.target_language,
             )
             context_chunks = (
