@@ -6,7 +6,11 @@ import sys
 import pyinstrument
 from dotenv import load_dotenv
 
-from src.wizit_context_ingestor import ChunksManager, TranscriptionManager
+from src.wizit_context_ingestor import (
+    ChunksManager,
+    PgKdbProvisioningManager,
+    TranscriptionManager,
+)
 
 load_dotenv()
 
@@ -34,13 +38,17 @@ if __name__ == "__main__":
             sys.exit(1)
 
         operation = sys.argv[1]
-        file_name = sys.argv[2]
+        # file_name = sys.argv[2]
 
-        if file_name is None:
-            file_name = "TBBC-2025.pdf.md"
+        # if file_name is None:
+        #     file_name = "TBBC-2025.pdf.md"
 
         if operation == "transcribe":
             # storage_service = LocalStorageService("data", "tmp")
+            file_name = sys.argv[2]
+
+            if file_name is None:
+                file_name = "TBBC-2025.pdf.md"
 
             deelab_transcribe_manager = TranscriptionManager(
                 GCP_PROJECT_ID,
@@ -72,6 +80,11 @@ if __name__ == "__main__":
             asyncio.run(deelab_transcribe_manager.transcribe_document(file_name))
 
         elif operation == "context":
+            file_name = sys.argv[2]
+
+            if file_name is None:
+                file_name = "TBBC-2025.pdf.md"
+
             if not file_name.endswith(".md"):
                 raise ValueError("File name must be a markdown file")
 
@@ -96,8 +109,8 @@ if __name__ == "__main__":
                 "pg",
                 {
                     "pg_connection": PG_CONNECTION,
-                    "embeddings_vectors_table_name": "langchain_pg_embedding_sync_prov",
-                    "records_manager_table_name": "langchain_record_manager_sync_prov",
+                    "embeddings_vectors_table_name": "solati",
+                    "records_manager_table_name": "solati",
                     "content_column": "document",
                     "metadata_json_column": "metadata",
                     "id_column": "id",
@@ -112,6 +125,11 @@ if __name__ == "__main__":
             )
             deelab_chunks_manager.index_documents_in_vector_store(chunks)
         elif operation == "query":
+            query = sys.argv[2]
+
+            if query is None:
+                raise ValueError("Query cannot be None")
+
             deelab_chunks_manager = ChunksManager(
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
@@ -122,8 +140,8 @@ if __name__ == "__main__":
                 "pg",
                 {
                     "pg_connection": PG_CONNECTION,
-                    "embeddings_vectors_table_name": "langchain_pg_embedding_sync_prov",
-                    "records_manager_table_name": "langchain_record_manager_sync_prov",
+                    "embeddings_vectors_table_name": "hdi",
+                    "records_manager_table_name": "upsertion_record",
                     "content_column": "document",
                     "metadata_json_column": "metadata",
                     "id_column": "id",
@@ -131,12 +149,86 @@ if __name__ == "__main__":
                 },
                 embeddings_model_id="gemini-embedding-001",
             )
-            deelab_chunks_manager.search_records("")
+            result = deelab_chunks_manager.search_records(query)
+        elif operation == "provisioning":
+            vector_store_name = sys.argv[2]
 
-            # deelab_chunks_manager.gen_context_chunks(
-            #     file_name, S3_ORIGIN_BUCKET_NAME, S3_TARGET_BUCKET_NAME
-            # )
+            if vector_store_name is None:
+                raise ValueError("vector_store_name cannot be None")
 
-    # execution examples
-    # python test_redis.py transcribe TBBC-2025.pdf
-    # python test_redis.py context GenAI-TBBC.pdf.md
+            pg_kdb_provisioning_manager = PgKdbProvisioningManager(
+                GCP_PROJECT_ID,
+                GCP_PROJECT_LOCATION,
+                gcp_secret_name,
+                "gemini-embedding-001",
+                {
+                    "pg_connection": PG_CONNECTION,
+                    "embeddings_vectors_table_name": vector_store_name,
+                    "records_manager_table_name": vector_store_name,
+                    "content_column": "document",
+                    "metadata_json_column": "metadata",
+                    "id_column": "id",
+                    "vector_size": 3072,
+                },
+            )
+            pg_kdb_provisioning_manager.provision_vector_store()
+
+        elif operation == "find_by_name":
+            file_name = sys.argv[2]
+
+            if file_name is None:
+                raise ValueError("file_name cannot be None")
+
+            deelab_chunks_manager = ChunksManager(
+                GCP_PROJECT_ID,
+                GCP_PROJECT_LOCATION,
+                gcp_secret_name,
+                LANGSMITH_API_KEY,
+                LANGCHAIN_PROJECT,
+                "local",
+                "pg",
+                {
+                    "pg_connection": PG_CONNECTION,
+                    "embeddings_vectors_table_name": "solati",
+                    "records_manager_table_name": "solati",
+                    "content_column": "document",
+                    "metadata_json_column": "metadata",
+                    "id_column": "id",
+                    "vector_size": 3072,
+                },
+                embeddings_model_id="gemini-embedding-001",
+            )
+            retrieved_docs = deelab_chunks_manager.search_records_by_file_name(
+                file_name
+            )
+            print(len(retrieved_docs))
+
+        elif operation == "delete_by_name":
+            file_name = sys.argv[2]
+
+            if file_name is None:
+                raise ValueError("file_name cannot be None")
+
+            deelab_chunks_manager = ChunksManager(
+                GCP_PROJECT_ID,
+                GCP_PROJECT_LOCATION,
+                gcp_secret_name,
+                LANGSMITH_API_KEY,
+                LANGCHAIN_PROJECT,
+                "local",
+                "pg",
+                {
+                    "pg_connection": PG_CONNECTION,
+                    "embeddings_vectors_table_name": "solati",
+                    "records_manager_table_name": "solati",
+                    "content_column": "document",
+                    "metadata_json_column": "metadata",
+                    "id_column": "id",
+                    "vector_size": 3072,
+                },
+                embeddings_model_id="gemini-embedding-001",
+            )
+            deleted_docs = deelab_chunks_manager.delete_documents_by_file_name(
+                file_name
+            )
+            print(len(deleted_docs))

@@ -1,4 +1,4 @@
 from .main import TranscriptionManager
-from .main_chunks import ChunksManager, PgKdbManager
+from .main_chunks import ChunksManager, PgKdbProvisioningManager
 
-__all__ = ["ChunksManager", "TranscriptionManager", "PgKdbManager"]
+__all__ = ["ChunksManager", "TranscriptionManager", "PgKdbProvisioningManager"]

@@ -125,6 +125,16 @@ class EmbeddingsManager(ABC):
     ):
         pass
 
+    @abstractmethod
+    def retrieve_documents_by_file_name(self, file_name: str) -> list[str]:
+        "Find files by file_name in vector store"
+        pass
+
+    @abstractmethod
+    def delete_documents_by_ids(self, docs_ids: list[str]) -> list[str]:
+        "Delete files by ids in vector store"
+        pass
+
     # @abstractmethod
     # def get_documents_keys_by_source_id(self, source_id: str):
     #     """Get documents keys by source ID."""

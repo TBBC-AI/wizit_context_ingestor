@@ -38,8 +38,7 @@ class KdbService:
         try:
             self.embeddings_manager.create_index()
         except Exception as e:
-            logger.error(f"Error creating vector store index: {e}")
-            raise Exception(f"Error creating vector store index: {e}")
+            logger.warning(f"Error creating vector store index: {e}")
 
     def search(self, query: str) -> list[Document]:
         try:
@@ -57,3 +56,22 @@ class KdbService:
         except Exception as e:
             logger.error(f"Error indexing documents: {e}")
             raise Exception(f"Error indexing documents: {e}")
+
+    def retrieve_documents_by_file_name(self, file_name: str) -> list[str]:
+        try:
+            records = self.embeddings_manager.retrieve_documents_by_file_name(file_name)
+            return records
+        except Exception as e:
+            logger.error(f"Error retrieving documents: {e}")
+            raise Exception(f"Error retrieving documents: {e}")
+
+    def delete_documents_by_file_name(self, file_name: str) -> list[str]:
+        try:
+            docs_ids = self.embeddings_manager.retrieve_documents_by_file_name(
+                file_name
+            )
+            self.embeddings_manager.delete_documents_by_ids(docs_ids)
+            return docs_ids
+        except Exception as e:
+            logger.error(f"Error deleting documents: {e}")
+            raise Exception(f"Error deleting documents: {e}")
