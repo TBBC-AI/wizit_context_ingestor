@@ -4,9 +4,11 @@
 # https://python.langchain.com/docs/how_to/embed_text/
 import logging
 import uuid
-from typing import List, Any
+from typing import Any, List
+
 from langchain_core.documents import Document
 from langchain_experimental.text_splitter import SemanticChunker
+
 from ...application.interfaces import RagChunker
 
 logger = logging.getLogger(__name__)
@@ -56,12 +58,14 @@ class SemanticChunks(RagChunker):
         """
         try:
             chunks = self.text_splitter.split_documents([document])
-            source = document.metadata["source"]
+            filtered_chunks = []
             for i, chunk in enumerate(chunks):
                 if document.metadata["source"]:
                     chunk.id = f"{uuid.uuid4()}"
-            logger.info(f"{len(chunks)} chunks generated successfully")
-            return chunks
+                    if chunk.page_content != "":
+                        filtered_chunks.append(chunk)
+            logger.info(f"{len(filtered_chunks)} chunks generated successfully")
+            return filtered_chunks
         except Exception as e:
             logger.error(f"Failed to get chunks: {str(e)}")
             raise

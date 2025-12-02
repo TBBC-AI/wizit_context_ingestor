@@ -109,8 +109,8 @@ if __name__ == "__main__":
                 "pg",
                 {
                     "pg_connection": PG_CONNECTION,
-                    "embeddings_vectors_table_name": "solati",
-                    "records_manager_table_name": "solati",
+                    "embeddings_vectors_table_name": "otobotest",
+                    "records_manager_table_name": "otobotest",
                     "content_column": "document",
                     "metadata_json_column": "metadata",
                     "id_column": "id",
@@ -189,8 +189,8 @@ if __name__ == "__main__":
                 "pg",
                 {
                     "pg_connection": PG_CONNECTION,
-                    "embeddings_vectors_table_name": "solati",
-                    "records_manager_table_name": "solati",
+                    "embeddings_vectors_table_name": "otobotest",
+                    "records_manager_table_name": "otobotest",
                     "content_column": "document",
                     "metadata_json_column": "metadata",
                     "id_column": "id",
@@ -219,8 +219,8 @@ if __name__ == "__main__":
                 "pg",
                 {
                     "pg_connection": PG_CONNECTION,
-                    "embeddings_vectors_table_name": "solati",
-                    "records_manager_table_name": "solati",
+                    "embeddings_vectors_table_name": "otobotest",
+                    "records_manager_table_name": "otobotest",
                     "content_column": "document",
                     "metadata_json_column": "metadata",
                     "id_column": "id",

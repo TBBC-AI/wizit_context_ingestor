@@ -1,8 +1,6 @@
 import logging
 
-from langchain.indexes import SQLRecordManager
 from langchain_core.documents import Document
-from langchain_postgres import PGVectorStore
 
 from .interfaces import (
     EmbeddingsManager,

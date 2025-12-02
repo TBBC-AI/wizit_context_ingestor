@@ -5,9 +5,10 @@ Application interfaces defining application layer contracts.
 from abc import ABC, abstractmethod
 from typing import List, Optional, Union
 
-from langchain.indexes import IndexingResult, SQLRecordManager
 from langchain_aws import ChatBedrockConverse
+from langchain_community.indexes._sql_record_manager import SQLRecordManager
 from langchain_core.documents import Document
+from langchain_core.indexing import IndexingResult
 from langchain_google_vertexai import ChatVertexAI
 from langchain_google_vertexai.model_garden import ChatAnthropicVertex
 from langchain_postgres import PGVectorStore

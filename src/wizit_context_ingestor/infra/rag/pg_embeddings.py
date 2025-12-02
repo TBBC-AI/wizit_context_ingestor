@@ -1,8 +1,9 @@
 import asyncio
 import logging
 
-from langchain.indexes import IndexingResult, SQLRecordManager, index
+from langchain_community.indexes._sql_record_manager import SQLRecordManager
 from langchain_core.documents import Document
+from langchain_core.indexing import IndexingResult, index
 from langchain_postgres import Column, PGEngine, PGVectorStore
 from langchain_postgres.v2.indexes import HNSWIndex
 
@@ -281,7 +282,10 @@ class PgEmbeddingsManager(EmbeddingsManager):
                 embeddings_model=self.embeddings_model,
                 records_manager_table_name=self.records_manager_table_name,
             ) as connection_manager:
-                if connection_manager.vector_store:
+                if (
+                    connection_manager.vector_store
+                    and connection_manager.record_manager
+                ):
                     return index(
                         docs,
                         connection_manager.record_manager,
