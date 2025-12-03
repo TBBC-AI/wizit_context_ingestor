@@ -62,7 +62,7 @@ class SemanticChunks(RagChunker):
             for i, chunk in enumerate(chunks):
                 if document.metadata["source"]:
                     chunk.id = f"{uuid.uuid4()}"
-                if chunk.page_content != "" or chunk.page_content is not None:
+                if chunk.page_content is not None and chunk.page_content != "":
                     filtered_chunks.append(chunk)
             logger.info(f"{len(filtered_chunks)} chunks generated successfully")
             return filtered_chunks
