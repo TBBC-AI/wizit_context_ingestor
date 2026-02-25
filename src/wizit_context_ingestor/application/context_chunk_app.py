@@ -1,13 +1,11 @@
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from langchain_core.documents import Document
 from langchain_core.messages.human import HumanMessage
-from langchain_core.output_parsers.pydantic import PydanticOutputParser
-from langchain_core.prompts import ChatPromptTemplate
+from langsmith import Client, tracing_context
 
-from ..data.prompts import CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT, ContextChunk
 from ..workflows.context_workflow import ContextWorkflow
 from .interfaces import (
     AiApplicationService,
@@ -19,7 +17,7 @@ from .interfaces import (
 logger = logging.getLogger(__name__)
 
 
-class ContextChunksInDocumentService:
+class ContextChunksInDocumentApp:
     """
     Service for chunking documents.
     """
@@ -30,6 +28,8 @@ class ContextChunksInDocumentService:
         persistence_service: PersistenceService,
         rag_chunker: RagChunker,
         embeddings_manager: EmbeddingsManager,
+        langsmith_api_key: str,
+        langsmith_project_name: str,
         target_language: str = "es",
     ):
         """
@@ -45,6 +45,9 @@ class ContextChunksInDocumentService:
         # TODO
         self.context_additional_instructions = ""
         self.metadata_source = "source"
+        # TRACING
+        self.langsmith_project_name = langsmith_project_name
+        self.langsmith_client = Client(api_key=langsmith_api_key)
 
     async def _retrieve_context_chunk_in_document_with_workflow(
         self,
@@ -55,34 +58,40 @@ class ContextChunksInDocumentService:
     ) -> Document:
         """Retrieve context chunks in document."""
         try:
-            result = await workflow.ainvoke(
-                {
-                    "messages": [
-                        HumanMessage(
-                            content=[
-                                {
-                                    "type": "text",
-                                    "text": f"Retrieve a complete context for the following chunk: <chunk>{chunk.page_content}</chunk>,  ensure all content chunks are generated with the same document's language.",
-                                },
-                            ]
-                        )
-                    ],
-                    "document_content": markdown_content,
-                },
-                {
-                    "configurable": {
-                        "transcription_accuracy_threshold": 0.95,
-                        "max_transcription_retries": 2,
-                    }
-                },
-            )
-            chunk.page_content = f"<context>\n{result['context']}\n</context>\n <content>\n{chunk.page_content}\n</content>"
-            # INFO: prevent context in metadata because it's already included in the chunk content, also generates issues when text is long
-            # chunk.metadata["context"] = result["context"]
-            if chunk_metadata is not None:
-                for key, value in chunk_metadata.items():
-                    chunk.metadata[key] = value
-            return chunk
+            with tracing_context(
+                enabled=True,
+                project_name=self.langsmith_project_name,
+                client=self.langsmith_client,
+            ):
+                result = await workflow.ainvoke(
+                    {
+                        "messages": [
+                            HumanMessage(
+                                content=[
+                                    {
+                                        "type": "text",
+                                        "text": f"Retrieve a complete context for the following chunk: <chunk>{chunk.page_content}</chunk>,  ensure all content chunks are generated with the same document's language.",
+                                    },
+                                ]
+                            )
+                        ],
+                        "document_content": markdown_content,
+                    },
+                    {
+                        "configurable": {
+                            "transcription_accuracy_threshold": 0.95,
+                            "max_transcription_retries": 2,
+                        }
+                    },
+                )
+                chunk.page_content = f"<context>\n{result['context']}\n</context>\n <content>\n{chunk.page_content}\n</content>"
+                # INFO: prevent context in metadata because it's already included in the chunk content, also generates issues when text is long
+                # chunk.metadata["context"] = result["context"]
+                # TODO retrieve keywords to filter by them
+                if chunk_metadata is not None:
+                    for key, value in chunk_metadata.items():
+                        chunk.metadata[key] = value
+                return chunk
         except Exception as e:
             logger.error(f"Failed to retrieve context chunks in document: {str(e)}")
             raise

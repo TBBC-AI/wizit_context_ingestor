@@ -56,3 +56,6 @@ class LocalStorageService(PersistenceService):
             f"{self.target_storage_route}/{file_key}", "w", encoding="utf-8"
         ) as f:
             f.write(parsed_document.document_text)
+
+    def retrieve_file_tags(self, file_key: str, dir: str):
+        pass

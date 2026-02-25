@@ -26,7 +26,7 @@ CHROMA_CLOUD_TENANT = os.environ.get("CHROMA_CLOUD_TENANT", "")
 PG_CONNECTION = os.environ.get("PG_CONNECTION", "")
 LANGSMITH_API_KEY = os.environ.get("LANGSMITH_API_KEY", "")
 LANGCHAIN_PROJECT = os.environ.get("LANGCHAIN_PROJECT", "")
-gcp_sa_path = os.path.join(os.path.dirname(__file__), "credentials", "gcp_sa.json")
+# gcp_sa_path = os.path.join(os.path.dirname(__file__), "credentials", "gcp_sa.json")
 
 if __name__ == "__main__":
     with pyinstrument.profile():
@@ -55,7 +55,7 @@ if __name__ == "__main__":
                 GCP_PROJECT_LOCATION,
                 gcp_secret_name,
                 LANGSMITH_API_KEY,
-                "test_wrapper",
+                LANGCHAIN_PROJECT,
                 storage_service="local",
                 source_storage_route="data",
                 target_storage_route="tmp",
@@ -98,7 +98,6 @@ if __name__ == "__main__":
             # "database": CHROMA_COLLECTION_NAME,
             # text-multilingual-embedding-002
             # postgresql://postgres.mitczeqkurkhkfsapeyh:[YOUR-PASSWORD]@aws-1-us-east-2.pooler.supabase.com:6543/postgres
-            print(PG_CONNECTION)
             deelab_chunks_manager = ChunksManager(
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,

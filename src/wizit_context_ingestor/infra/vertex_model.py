@@ -1,11 +1,12 @@
-from vertexai import init as vertexai_init
-from google.oauth2 import service_account
-from langchain_google_vertexai import VertexAIEmbeddings, ChatVertexAI
-from langchain_google_vertexai.model_garden import ChatAnthropicVertex
-from typing import Dict, Any, Optional, List, Union
-from ..application.interfaces import AiApplicationService
 import logging
+from typing import Any, Dict, List, Optional, Union
 
+from google.oauth2 import service_account
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from langchain_google_vertexai.model_garden import ChatAnthropicVertex
+from vertexai import init as vertexai_init
+
+from ..application.interfaces import AiApplicationService
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class VertexModels(AiApplicationService):
         location: str,
         json_service_account: Dict[str, Any],
         scopes: Optional[List[str]] = None,
-        llm_model_id: str = "claude-sonnet-4@20250514",
+        llm_model_id: str = "claude-sonnet-4-6",
     ):
         """
         Initialize the VertexModels class with Google Cloud credentials.
@@ -42,7 +43,6 @@ class VertexModels(AiApplicationService):
             scopes: Optional list of authentication scopes. Defaults to cloud platform scope.
         """
         try:
-            print(location)
             self.scopes = scopes or ["https://www.googleapis.com/auth/cloud-platform"]
             self.credentials = service_account.Credentials.from_service_account_info(
                 json_service_account, scopes=self.scopes
@@ -62,7 +62,7 @@ class VertexModels(AiApplicationService):
 
     def load_embeddings_model(
         self, embeddings_model_id: str = "text-multilingual-embedding-002"
-    ) -> VertexAIEmbeddings:  # noqa: E125
+    ) -> GoogleGenerativeAIEmbeddings:  # noqa: E125
         """
         Load and return a Vertex AI embeddings model.
         default embeddings length is 768 https://cloud.google.com/vertex-ai/generative-ai/docs/embeddings/get-text-embeddings
@@ -74,7 +74,7 @@ class VertexModels(AiApplicationService):
             An instance of VertexAIEmbeddings ready for generating embeddings.
         """
         try:
-            embeddings = VertexAIEmbeddings(
+            embeddings = GoogleGenerativeAIEmbeddings(
                 model=embeddings_model_id,
                 credentials=self.credentials,
             )
@@ -89,10 +89,10 @@ class VertexModels(AiApplicationService):
     def load_chat_model(
         self,
         temperature: float = 0.15,
-        max_tokens: int = 8192,
+        max_tokens: int = 20000,
         stop: Optional[List[str]] = None,
         **chat_model_params,
-    ) -> Union[ChatVertexAI, ChatAnthropicVertex]:
+    ) -> Union[ChatGoogleGenerativeAI, ChatAnthropicVertex]:
         """
         Load a Vertex AI chat model for text generation.
 
@@ -101,7 +101,7 @@ class VertexModels(AiApplicationService):
                          Default is "gemini-1.5-flash-001".
             temperature: Controls randomness in responses. Lower values make responses
                         more deterministic. Default is 0.1.
-            max_tokens: Maximum number of tokens to generate. Default is 8192.
+            max_tokens: Maximum number of tokens to generate. Default is 20000.
             stop: Optional list of strings that will stop generation when encountered.
             **chat_model_params: Additional parameters to pass to the chat model.
 
@@ -138,7 +138,7 @@ class VertexModels(AiApplicationService):
         max_tokens: int = 64000,
         stop: Optional[List[str]] = None,
         **chat_model_params,
-    ) -> ChatVertexAI:
+    ) -> ChatGoogleGenerativeAI:
         """
         Load a Vertex AI chat model for text generation.
 
@@ -155,7 +155,7 @@ class VertexModels(AiApplicationService):
             An instance of ChatVertexAI ready for chat interactions.
         """
         try:
-            self.llm_model = ChatVertexAI(
+            self.llm_model = ChatGoogleGenerativeAI(
                 model=chat_model_id,
                 location=self.location,  # Use the same location as the project,
                 temperature=temperature,

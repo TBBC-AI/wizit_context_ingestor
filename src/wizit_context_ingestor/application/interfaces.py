@@ -5,10 +5,10 @@ Application interfaces defining application layer contracts.
 from abc import ABC, abstractmethod
 from typing import List, Optional, Union
 
-from langchain.indexes import IndexingResult, SQLRecordManager
 from langchain_aws import ChatBedrockConverse
+from langchain_classic.indexes import IndexingResult, SQLRecordManager
 from langchain_core.documents import Document
-from langchain_google_vertexai import ChatVertexAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_vertexai.model_garden import ChatAnthropicVertex
 from langchain_postgres import PGVectorStore
 
@@ -35,7 +35,7 @@ class AiApplicationService(ABC):
     @abstractmethod
     def load_chat_model(
         self, **kwargs
-    ) -> Union[ChatVertexAI, ChatAnthropicVertex, ChatBedrockConverse]:
+    ) -> Union[ChatGoogleGenerativeAI, ChatAnthropicVertex, ChatBedrockConverse]:
         """Load a chat model."""
         pass
 

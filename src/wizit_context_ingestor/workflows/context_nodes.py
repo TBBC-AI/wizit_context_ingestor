@@ -1,10 +1,14 @@
-from ..data.prompts import WORKFLOW_CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.prompts import MessagesPlaceholder
+from logging import getLogger
+
 from langchain_core.messages import SystemMessage, ToolMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langgraph.graph import END
 from langgraph.pregel.main import Command
+
+from ..data.prompts import WORKFLOW_CONTEXT_CHUNKS_IN_DOCUMENT_SYSTEM_PROMPT
 from .context_state import ContextState
+
+logger = getLogger(__name__)
 
 
 class ContextNodes:
@@ -38,7 +42,7 @@ class ContextNodes:
             context_result = context_chain.invoke({"messages": messages})
             return {"messages": [context_result]}
         except Exception as e:
-            print(f"Error occurred: {e}")
+            logger.error(f"Error occurred: {e}")
             raise e
 
     def return_context(self, state: ContextState, config):

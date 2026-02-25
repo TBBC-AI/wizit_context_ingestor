@@ -1,10 +1,10 @@
 import base64
 import logging
-import io
-import pymupdf
-from PIL import Image
 from typing import List
-from ..domain.models import ParsedDocPage, ParsedDoc
+
+import pymupdf
+
+from ..domain.models import ParsedDoc, ParsedDocPage
 
 logger = logging.getLogger(__name__)
 
@@ -41,19 +41,25 @@ class ParseDocModelService:
         """
         try:
             # input is one-indexed
-            page = self.pdf_document.load_page(page_number - 1)
-            pix = page.get_pixmap()
-            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-            buffer = io.BytesIO()
-            img.save(buffer, format="PNG")
-            b64_encoded_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
-            logger.info(f"Page {page_number} encoded successfully")
-            return ParsedDocPage(page_number=page_number, page_base64=b64_encoded_image)
+            # page = self.pdf_document.load_page(page_number - 1)
+            single_page_doc = pymupdf.open()
+            single_page_doc.insert_pdf(
+                self.pdf_document, from_page=page_number, to_page=page_number
+            )
+            single_page_doc_bytes = single_page_doc.tobytes()
+            b64_encoded_pdf = base64.b64encode(single_page_doc_bytes).decode("utf-8")
+            # pix = page.get_pixmap()
+            # img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+            # buffer = io.BytesIO()
+            # img.save(buffer, format="PNG")
+            # b64_encoded_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
+            # logger.info(f"Page {page_number} encoded successfully")
+            return ParsedDocPage(page_number=page_number, page_base64=b64_encoded_pdf)
         except Exception as e:
             logger.error(f"Failed to parse b64 image: {str(e)}")
             raise
 
-    def parse_document_to_base64(self) -> List[ParsedDocPage]:
+    def parse_document_to_base64_pages(self) -> List[ParsedDocPage]:
         """
         Convert all pages in the PDF document to base64-encoded images.
 
@@ -76,7 +82,7 @@ class ParseDocModelService:
             # logger.info(f"{len(base64_pages)} Pages encoded to base64 successfully")
             return base64_pages
         except Exception as e:
-            logger.error(f"Failed to parse b64 image: {str(e)}")
+            logger.error(f"Failed to parse b64 pages: {str(e)}")
             raise
 
     def create_md_content(self, parsed_pages: List[ParsedDocPage]) -> ParsedDoc:
@@ -89,5 +95,3 @@ class ParseDocModelService:
             md_content += f"## Page {page.page_number}\n\n"
             md_content += f"{page.page_text}\n\n"
         return ParsedDoc(pages=parsed_pages, document_text=md_content)
-
-    # def

@@ -3,9 +3,9 @@ from logging import getLogger
 from typing import Any, Dict, Literal
 
 from langchain_core.documents import Document
-from langsmith import Client, tracing_context
 
-from .application.context_chunk_service import ContextChunksInDocumentService
+# from langsmith import Client, tracing_context
+from .application.context_chunk_app import ContextChunksInDocumentApp
 from .application.kdb_service import KdbService
 from .data.storage import StorageServices
 from .infra.persistence.local_storage import LocalStorageService
@@ -43,7 +43,7 @@ logger = getLogger(__name__)
 class PersistenceManager:
     def __init__(
         self,
-        storage_service: Literal["s3", "local"],
+        storage_service: StorageServices,
         source_storage_route,
         target_storage_route,
     ):
@@ -52,12 +52,12 @@ class PersistenceManager:
         self.target_storage_route = target_storage_route
 
     def retrieve_storage_service(self):
-        if self.storage_service == StorageServices.S3.value:
+        if self.storage_service == StorageServices.S3:
             return S3StorageService(
                 origin_bucket_name=self.source_storage_route,
                 target_bucket_name=self.target_storage_route,
             )
-        elif self.storage_service == StorageServices.LOCAL.value:
+        elif self.storage_service == StorageServices.LOCAL:
             return LocalStorageService(
                 source_storage_route=self.source_storage_route,
                 target_storage_route=self.target_storage_route,
@@ -109,10 +109,10 @@ class ChunksManager:
         gcp_secret_name: str,
         langsmith_api_key: str,
         langsmith_project_name: str,
-        storage_service: Literal["s3", "local"],
+        storage_service: StorageServices,
         kdb_service_name: Literal["pg"],
         kdb_params: Dict[Any, Any],
-        llm_model_id: str = "claude-3-5-haiku@20241022",
+        llm_model_id: str = "claude-sonnet-4-6",
         embeddings_model_id: str = "text-multilingual-embedding-002",
         target_language: str = "es",
     ):
@@ -132,16 +132,12 @@ class ChunksManager:
         )
         self.langsmith_api_key = langsmith_api_key
         self.langsmith_project_name = langsmith_project_name
-        self.langsmith_client = Client(api_key=self.langsmith_api_key)
         self.pg_embeddings_manager = PgEmbeddingsManager(
             self.embeddings_model, **self.kdb_params
         )
         self.kdb_service = KdbService(
             self.pg_embeddings_manager,
         )
-        # self.pg_kdb_manager = PgKdbManager(self.embeddings_model, self.kdb_params)
-        # self.pg_embeddings_manager = self.pg_kdb_manager.pg_embeddings_manager
-        # self.kdb_service = self.pg_kdb_manager.kdb_service
         self.rag_chunker = SemanticChunks(self.embeddings_model)
 
     def _get_gcp_sa_dict(self, gcp_secret_name: str):
@@ -158,13 +154,6 @@ class ChunksManager:
         )
         return vertex_model
 
-    # def provision_vector_store(self):
-    #     try:
-    #         self.kdb_service.configure_kdb()
-    #         self.kdb_service.create_vector_store_hsnw_index()
-    #     except Exception as e:
-    #         logger.error(f"Error configuring vector store: {e}")
-
     def index_documents_in_vector_store(self, docs: list[Document]):
         try:
             self.kdb_service.index_documents_in_vector_store(docs)
@@ -180,18 +169,17 @@ class ChunksManager:
     def delete_documents_by_file_name(self, file_name: str):
         return self.kdb_service.delete_documents_by_file_name(file_name)
 
-    def tracing(func):
-        async def gen_tracing_context(self, *args, **kwargs):
-            with tracing_context(
-                enabled=True,
-                project_name=self.langsmith_project_name,
-                client=self.langsmith_client,
-            ):
-                return await func(self, *args, **kwargs)
+    # def tracing(func):
+    #     async def gen_tracing_context(self, *args, **kwargs):
+    #         with tracing_context(
+    #             enabled=True,
+    #             project_name=self.langsmith_project_name,
+    #             client=self.langsmith_client,
+    #         ):
+    #             return await func(self, *args, **kwargs)
 
-        return gen_tracing_context
-
-    @tracing
+    #     return gen_tracing_context
+    # @tracing
     async def gen_context_chunks(
         self, file_key: str, source_storage_route: str, target_storage_route: str
     ):
@@ -207,13 +195,13 @@ class ChunksManager:
                     file_key, target_storage_route
                 )
             rag_chunker = SemanticChunks(self.embeddings_model)
-            # kdb_manager = KdbManager(self.embeddings_model, self.kdb_params)
-            # kdb_service = kdb_manager.retrieve_kdb_service()
-            context_chunks_in_document_service = ContextChunksInDocumentService(
+            context_chunks_in_document_service = ContextChunksInDocumentApp(
                 ai_application_service=self.vertex_model,
                 persistence_service=persistence_service,
                 rag_chunker=rag_chunker,
                 embeddings_manager=self.pg_embeddings_manager,
+                langsmith_api_key=self.langsmith_api_key,
+                langsmith_project_name=self.langsmith_project_name,
                 target_language=self.target_language,
             )
             context_chunks = (
@@ -223,5 +211,5 @@ class ChunksManager:
             )
             return context_chunks
         except Exception as e:
-            print(f"Error getting context chunks in document: {e}")
+            logger.error(f"Error getting context chunks in document: {e}")
             raise e

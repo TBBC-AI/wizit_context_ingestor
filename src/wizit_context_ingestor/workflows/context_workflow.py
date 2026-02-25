@@ -1,8 +1,12 @@
-from langgraph.graph import StateGraph
-from langgraph.graph import START, END
-from .context_state import ContextState
+from logging import getLogger
+
+from langgraph.graph import END, START, StateGraph
+
 from .context_nodes import ContextNodes
-from .context_tools import think_tool, complete_context_gen
+from .context_state import ContextState
+from .context_tools import complete_context_gen, think_tool
+
+logger = getLogger(__name__)
 
 
 class ContextWorkflow:
@@ -29,14 +33,8 @@ class ContextWorkflow:
             workflow.add_node("return_context", self.context_nodes.return_context)
             workflow.add_edge(START, "gen_context")
             workflow.add_edge("gen_context", "tools")
-            # workflow.add_conditional_edges(
-            #     "gen_context",
-            #     self.context_nodes.should_continue,
-            #     {"tools": "tools", "return_context": "return_context"},
-            # )
-            # workflow.add_edge("tools", "gen_context")
             workflow.add_edge("return_context", END)
             return workflow
         except Exception as e:
-            print(f"Error generating context workflow: {e}")
-            return None
+            logger.error(f"Error generating context workflow: {e}")
+            raise e

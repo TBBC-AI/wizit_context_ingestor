@@ -1,14 +1,18 @@
+from logging import getLogger
+
+from langchain_core.messages import SystemMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langgraph.graph import END
+from langgraph.pregel.main import Command
+
 from ..data.prompts import (
     AGENT_TRANSCRIPTION_SYSTEM_PROMPT,
     IMAGE_TRANSCRIPTION_CHECK_SYSTEM_PROMPT,
 )
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.prompts import MessagesPlaceholder
-from langchain_core.messages import SystemMessage
-from langgraph.graph import END
-from langgraph.pregel.main import Command
 from .transcription_schemas import Transcription, TranscriptionCheck
 from .transcription_state import TranscriptionState
+
+logger = getLogger(__name__)
 
 
 class TranscriptionNodes:
@@ -54,14 +58,14 @@ class TranscriptionNodes:
                 },
             )
         except Exception as e:
-            print(f"Error occurred: {e}")
+            logger.error(f"Error occurred: {e}")
             return Command(goto=END)
 
     def check_transcription(self, state, config):
         try:
             transcription = state["transcription"]
             messages = state["messages"]
-            print("last message, ", messages[-1])
+            logger.info("last message, ", messages[-1])
             if not transcription:
                 raise ValueError("No transcription provided")
             # parser = PydanticOutputParser(pydantic_object=TranscriptionCheck)
@@ -93,7 +97,7 @@ class TranscriptionNodes:
                 },
             )
         except Exception as e:
-            print(f"Error occurred: {e}")
+            logger.error(f"Error occurred: {e}")
             return Command(goto=END, update={"transcription_accuracy": 0.0})
 
     def validate_transcription_results(self, state, config):
@@ -132,5 +136,5 @@ class TranscriptionNodes:
                 # success
                 return Command(goto=END, update={"transcription_status": "completed"})
         except Exception as e:
-            print(f"Error occurred: {e}")
+            logger.error(f"Error occurred: {e}")
             return Command(goto=END, update={"transcription_status": "failed"})

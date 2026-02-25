@@ -1,110 +1,19 @@
 import asyncio
 import logging
 
-from langchain.indexes import IndexingResult, SQLRecordManager, index
+from langchain_classic.indexes import IndexingResult, SQLRecordManager, index
 from langchain_core.documents import Document
-from langchain_postgres import Column, PGEngine, PGVectorStore
+from langchain_postgres import Column, PGVectorStore
 from langchain_postgres.v2.indexes import HNSWIndex
-
-# from sqlalchemy.ext.asyncio import create_async_engine
-# from sqlalchemy.sql.expression import ColumnExpressionArgument
 from typing_extensions import Literal
 
 from wizit_context_ingestor.application.interfaces import EmbeddingsManager
+from wizit_context_ingestor.infra.persistence.pg_connection_manager import (
+    PgVectorConnectionManager,
+)
+from wizit_context_ingestor.infra.persistence.pg_engine_manager import PgEngineManager
 
 logger = logging.getLogger(__name__)
-
-# See docker command above to launch a postgres instance with pgvector enabled.
-# connection =  os.environ.get("VECTORS_CONNECTION")
-# collection_name = "documents"
-# GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
-# GCP_PROJECT_LOCATION = os.environ.get("GCP_PROJECT_LOCATION")
-# SUPABASE_TABLE: str = os.environ.get("SUPABASE_TABLE")
-
-
-class PgEngineManager:
-    def __init__(
-        self,
-        pg_connection: str,
-    ):
-        self.pg_connection = pg_connection
-        self.pg_engine: PGEngine
-
-    def __enter__(self):
-        try:
-            self.pg_engine = PGEngine.from_connection_string(
-                self.pg_connection, pool_size=1
-            )
-            return self
-        except Exception as e:
-            logger.error(f"Error connecting to PostgreSQL: {e}")
-            raise e
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        try:
-            if self.pg_engine:
-                asyncio.run(self.pg_engine.close())
-        except Exception as e:
-            logger.error(f"Error closing PostgreSQL connection: {e}")
-
-
-class PgVectorConnectionManager:
-    def __init__(
-        self,
-        pg_connection: str,
-        embeddings_model,
-        embeddings_vectors_table_name: str,
-        records_manager_table_name: str = "records_manager",
-        metadata_json_column: str = "metadata",
-        metadata_columns: list[str] = ["source"],
-        content_column: str = "document",
-        id_column: str = "id",
-    ):
-        self.pg_connection = pg_connection
-        self.pg_engine = None
-        self.vector_store: PGVectorStore | None = None
-        self.metadata_json_column = metadata_json_column
-        self.metadata_columns = metadata_columns
-        self.content_column = content_column
-        self.id_column = id_column
-        self.embeddings_model = embeddings_model
-        self.embeddings_vectors_table_name = embeddings_vectors_table_name
-        self.records_manager_table_name = records_manager_table_name
-
-    def __enter__(self):
-        try:
-            self.pg_engine = PGEngine.from_connection_string(
-                self.pg_connection, pool_size=1
-            )
-            self.vector_store = PGVectorStore.create_sync(
-                embedding_service=self.embeddings_model,
-                engine=self.pg_engine,
-                table_name=self.embeddings_vectors_table_name,
-                content_column=self.content_column,
-                metadata_json_column=self.metadata_json_column,
-                metadata_columns=self.metadata_columns,
-                id_column=self.id_column,
-            )
-            self.record_manager = SQLRecordManager(
-                self.records_manager_table_name,
-                db_url=self.pg_connection,
-                async_mode=False,
-            )
-            return self
-        except Exception as e:
-            logger.error(f"Error connecting to PostgreSQL: {e}")
-            raise e
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        try:
-            if self.pg_engine:
-                asyncio.run(self.pg_engine.close())
-            if self.vector_store:
-                self.vector_store = None
-            if self.record_manager:
-                self.record_manager = None
-        except Exception as e:
-            logger.error(f"Error closing PostgreSQL connection: {e}")
 
 
 class PgEmbeddingsManager(EmbeddingsManager):

@@ -1,12 +1,9 @@
 import logging
 
-from langchain.indexes import SQLRecordManager
 from langchain_core.documents import Document
-from langchain_postgres import PGVectorStore
 
 from .interfaces import (
     EmbeddingsManager,
-    RagChunker,
 )
 
 logger = logging.getLogger(__name__)
@@ -44,7 +41,6 @@ class KdbService:
         try:
             records = []
             records = self.embeddings_manager.search_records(query)
-            print(records)
             return records
         except Exception as e:
             logger.error(f"Error indexing documents: {e}")

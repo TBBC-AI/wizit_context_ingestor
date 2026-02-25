@@ -1,8 +1,13 @@
-from langgraph.graph import StateGraph
-from langgraph.graph import START, END
-from .transcription_state import TranscriptionState, TranscriptionInputState
+from logging import getLogger
+
+from langgraph.graph import END, START, StateGraph
+
 from .transcription_nodes import TranscriptionNodes
+from .transcription_state import TranscriptionInputState, TranscriptionState
+
 # from .transcription_tools import transcribe_page, correct_transcription
+
+logger = getLogger(__name__)
 
 
 class TranscriptionWorkflow:
@@ -21,7 +26,7 @@ class TranscriptionWorkflow:
             self.llm_model, self.transcription_additional_instructions
         )
 
-    def gen_workflow(self):
+    def gen_workflow(self) -> StateGraph:
         try:
             workflow = StateGraph(
                 TranscriptionState, input_schema=TranscriptionInputState
@@ -38,5 +43,5 @@ class TranscriptionWorkflow:
             # workflow.add_edge("transcribe", "validate_transcription_results")
             return workflow
         except Exception as e:
-            print(f"Error generating transcription workflow: {e}")
-            return None
+            logger.error(f"Error generating transcription workflow: {e}")
+            raise e
