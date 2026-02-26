@@ -136,7 +136,7 @@ class S3StorageService(PersistenceService):
         try:
             response = self.s3.get_object_tagging(Bucket=bucket_name, Key=file_key)
             if response["TagSet"] and len(response["TagSet"]) > 0:
-                logger.info(f"Successfully retrieved file tags from S3")
+                logger.info("Successfully retrieved file tags from S3")
                 return {item["Key"]: item["Value"] for item in response["TagSet"]}
             else:
                 logger.info(f"No tags found for file {file_key}")

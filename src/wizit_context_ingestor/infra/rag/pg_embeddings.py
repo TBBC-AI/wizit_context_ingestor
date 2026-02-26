@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 from langchain_classic.indexes import IndexingResult, SQLRecordManager, index
@@ -126,7 +125,9 @@ class PgEmbeddingsManager(EmbeddingsManager):
                 )
                 return (self.vector_store, self.record_manager)
         except Exception as e:
-            logger.error(f"Error retrieve vector store: ", e)
+            logger.error(
+                f"Error retrieve vector store: {str(e)} ",
+            )
             raise e
 
     def create_user_vector_store(self):

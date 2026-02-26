@@ -2,7 +2,7 @@ import logging
 
 from langchain_aws import ChatBedrockConverse
 from langchain_core.callbacks import StdOutCallbackHandler
-from typing_extensions import List, Optional, Union
+from typing_extensions import List, Optional
 
 from ..application.interfaces import AiApplicationService
 

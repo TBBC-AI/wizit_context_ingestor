@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from langgraph.graph import END, START, StateGraph
+from langgraph.graph import START, StateGraph
 
 from .transcription_nodes import TranscriptionNodes
 from .transcription_state import TranscriptionInputState, TranscriptionState

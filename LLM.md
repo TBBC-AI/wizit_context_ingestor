@@ -22,6 +22,8 @@ from wizit_context_ingestor import (
     TranscriptionManager,
     ChunksManager,
     PgKdbProvisioningManager,
+    KdbServices,
+    StorageServices,
 )
 ```
 
