@@ -74,9 +74,14 @@ class VertexModels(AiApplicationService):
             An instance of VertexAIEmbeddings ready for generating embeddings.
         """
         try:
+            print("creds")
+            print(self.credentials)
             embeddings = GoogleGenerativeAIEmbeddings(
                 model=embeddings_model_id,
                 credentials=self.credentials,
+                project=self.project_id,
+                location=self.location,
+                vertexai=True,
             )
             logger.debug(f"Loaded embedding model: {embeddings_model_id}")
             return embeddings
