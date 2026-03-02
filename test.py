@@ -8,7 +8,9 @@ from dotenv import load_dotenv
 
 from src.wizit_context_ingestor import (
     ChunksManager,
+    KdbServices,
     PgKdbProvisioningManager,
+    StorageServices,
     TranscriptionManager,
 )
 
@@ -104,7 +106,7 @@ if __name__ == "__main__":
                 gcp_secret_name,
                 LANGSMITH_API_KEY,
                 LANGCHAIN_PROJECT,
-                "local",
+                StorageServices.LOCAL,
                 "pg",
                 {
                     "pg_connection": PG_CONNECTION,
@@ -135,7 +137,7 @@ if __name__ == "__main__":
                 gcp_secret_name,
                 LANGSMITH_API_KEY,
                 LANGCHAIN_PROJECT,
-                "local",
+                StorageServices.LOCAL,
                 "pg",
                 {
                     "pg_connection": PG_CONNECTION,
@@ -184,7 +186,7 @@ if __name__ == "__main__":
                 gcp_secret_name,
                 LANGSMITH_API_KEY,
                 LANGCHAIN_PROJECT,
-                "local",
+                StorageServices.LOCAL,
                 "pg",
                 {
                     "pg_connection": PG_CONNECTION,
@@ -214,7 +216,7 @@ if __name__ == "__main__":
                 gcp_secret_name,
                 LANGSMITH_API_KEY,
                 LANGCHAIN_PROJECT,
-                "local",
+                StorageServices.LOCAL,
                 "pg",
                 {
                     "pg_connection": PG_CONNECTION,

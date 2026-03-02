@@ -43,8 +43,8 @@ class KdbService:
             records = self.embeddings_manager.search_records(query)
             return records
         except Exception as e:
-            logger.error(f"Error indexing documents: {e}")
-            raise Exception(f"Error indexing documents: {e}")
+            logger.error(f"Error searching documents: {e}")
+            raise Exception(f"Error searching documents: {e}")
 
     def index_documents_in_vector_store(self, documents: list[Document]) -> None:
         try:
