@@ -4,7 +4,7 @@ from langgraph.graph import END, START, StateGraph
 
 from .context_nodes import ContextNodes
 from .context_state import ContextState
-from .context_tools import complete_context_gen, think_tool
+from .context_tools import complete_context_gen
 
 logger = getLogger(__name__)
 
@@ -20,7 +20,7 @@ class ContextWorkflow:
     def __init__(self, llm_model, context_additional_instructions):
         self.llm_model = llm_model
         self.context_additional_instructions = context_additional_instructions
-        self.tools = [think_tool, complete_context_gen]
+        self.tools = [complete_context_gen]
         self.context_nodes = ContextNodes(
             self.llm_model, self.tools, self.context_additional_instructions
         )
