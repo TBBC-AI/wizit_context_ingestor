@@ -41,7 +41,7 @@ class SemanticChunks(RagChunker):
             breakpoint_threshold_type="percentile",
             breakpoint_threshold_amount=90,
             min_chunk_size=500,
-            sentence_split_regex="(?m)(?=^#+\s)|(?:\n\s*\n)",
+            sentence_split_regex=r"(?m)(?=^#+\s)|(?:\n\s*\n)",
         )
 
     def gen_chunks_for_document(self, document: Document) -> List[Document]:
