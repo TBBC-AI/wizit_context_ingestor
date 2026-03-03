@@ -21,7 +21,7 @@ class MarkdownHeadersChunks(RagChunker):
 
     __slots__ = ("embeddings_model",)
 
-    def __init__(self, chunk_size: int = 7000, chunk_overlap: int = 700):
+    def __init__(self, chunk_size: int = 6000, chunk_overlap: int = 600):
         """
         Initialize a markdown header-based document chunker.
 
