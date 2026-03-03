@@ -27,6 +27,7 @@ AGENT_TRANSCRIPTION_SYSTEM_PROMPT = """
     - Avoid blank lines in transcription
     - Exclude logos, watermarks, and decorative icons
     - Omit special characters that interfere with markdown
+    - Use plain text for page numbers, never use Markdown Headers (#, ##, ###, etc.)
     10. IMAGE HANDLING:
     <image_transcription_rules>
     - Extract and transcribe any text within images

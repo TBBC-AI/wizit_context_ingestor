@@ -85,8 +85,7 @@ class ContextChunksInDocumentApp:
                     },
                 )
                 chunk.page_content = f"<context>\n{result['context']}\n</context>\n <content>\n{chunk.page_content}\n</content>"
-                # INFO: prevent context in metadata because it's already included in the chunk content, also generates issues when text is long
-                # chunk.metadata["context"] = result["context"]
+                print(chunk.page_content)
                 # TODO retrieve keywords to filter by them
                 if chunk_metadata is not None:
                     for key, value in chunk_metadata.items():

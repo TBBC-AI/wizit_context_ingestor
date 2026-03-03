@@ -1,9 +1,12 @@
 import logging
 import uuid
-from typing import Any, List
+from typing import List
 
 from langchain_core.documents import Document
-from langchain_text_splitters import MarkdownHeaderTextSplitter
+from langchain_text_splitters import (
+    MarkdownHeaderTextSplitter,
+    RecursiveCharacterTextSplitter,
+)
 
 from ...application.interfaces import RagChunker
 
@@ -18,19 +21,28 @@ class MarkdownHeadersChunks(RagChunker):
 
     __slots__ = ("embeddings_model",)
 
-    def __init__(self):
+    def __init__(self, chunk_size: int = 1400, chunk_overlap: int = 100):
         """
         Initialize a markdown header-based document chunker.
 
         Args:
-            embeddings_model: The embeddings model (currently unused but kept for interface compatibility)
+            chunk_size: Maximum size of each text chunk (default: 1000)
+            chunk_overlap: Number of characters to overlap between chunks (default: 100)
 
         Notes:
-            Splits on # (Title) and ## (Subtitle) headers with headers preserved in chunks.
+            Splits on # (Header1), ## (Header2), and ### (Header3) with headers preserved in chunks.
+
         """
-        self.text_splitter = MarkdownHeaderTextSplitter(
-            headers_to_split_on=[("#", "Title"), ("##", "Subtitle")],
+        self.markdown_splitter = MarkdownHeaderTextSplitter(
+            headers_to_split_on=[
+                ("#", "Header1"),
+                ("##", "Header2"),
+                ("###", "Header3"),
+            ],
             strip_headers=False,
+        )
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size, chunk_overlap=chunk_overlap
         )
 
     def gen_chunks_for_document(self, document: Document) -> List[Document]:
@@ -47,7 +59,8 @@ class MarkdownHeadersChunks(RagChunker):
             Exception: If there's an error during the chunking process
         """
         try:
-            chunks = self.text_splitter.split_text(document.page_content)
+            md_header_splits = self.markdown_splitter.split_text(document.page_content)
+            chunks = self.text_splitter.split_documents(md_header_splits)
             filtered_chunks = []
             for i, chunk in enumerate(chunks):
                 if document.metadata["source"]:
