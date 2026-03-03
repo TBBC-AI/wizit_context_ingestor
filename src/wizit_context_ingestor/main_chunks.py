@@ -10,8 +10,9 @@ from .application.kdb_service import KdbService
 from .data.storage import StorageServices
 from .infra.persistence.local_storage import LocalStorageService
 from .infra.persistence.s3_storage import S3StorageService
-from .infra.rag.markdown_chunks import MarkdownHeadersChunks
 from .infra.rag.pg_embeddings import PgEmbeddingsManager
+from .infra.rag.recursive_chunks import RecursiveChunks
+from .infra.rag.semantic_chunks import SemanticChunks
 from .infra.secrets.aws_secrets_manager import AwsSecretsManager
 from .infra.vertex_model import VertexModels
 from .utils.file_utils import validate_file_name_format
@@ -193,7 +194,7 @@ class ChunksManager:
                 target_bucket_file_tags = persistence_service.retrieve_file_tags(
                     file_key, target_storage_route
                 )
-            rag_chunker = MarkdownHeadersChunks()
+            rag_chunker = SemanticChunks(self.embeddings_model)
             context_chunks_in_document_service = ContextChunksInDocumentApp(
                 ai_application_service=self.vertex_model,
                 persistence_service=persistence_service,
