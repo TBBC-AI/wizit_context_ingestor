@@ -2669,7 +2669,7 @@ wheels = [
 
 [[package]]
 name = "wizit-context-ingestor"
-version = "0.5.1b6"
+version = "0.5.1b11"
 source = { editable = "." }
 dependencies = [
     { name = "anthropic", extra = ["vertex"] },

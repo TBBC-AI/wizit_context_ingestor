@@ -76,7 +76,7 @@ class ParseDocModelService:
         # COLAB --> PREGUNTAS Y RESPUESTAS SOBRE EL DOCUMENTO
         try:
             base64_pages = []
-            for page_number in range(1, self.pdf_document.page_count + 1):
+            for page_number in range(0, self.pdf_document.page_count):
                 page = self.pdf_page_to_base64(page_number)
                 base64_pages.append(page)
             # logger.info(f"{len(base64_pages)} Pages encoded to base64 successfully")

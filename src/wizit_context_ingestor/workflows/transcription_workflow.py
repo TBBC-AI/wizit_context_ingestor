@@ -40,7 +40,6 @@ class TranscriptionWorkflow:
                 self.transcription_nodes.validate_transcription_results,
             )
             workflow.add_edge(START, "transcribe")
-            # workflow.add_edge("transcribe", "validate_transcription_results")
             return workflow
         except Exception as e:
             logger.error(f"Error generating transcription workflow: {e}")
