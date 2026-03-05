@@ -36,11 +36,11 @@ class SemanticChunks(RagChunker):
         """
         self.text_splitter = SemanticChunker(
             embeddings_model,
-            buffer_size=2,
+            buffer_size=1,
             add_start_index=True,
             breakpoint_threshold_type="percentile",
-            breakpoint_threshold_amount=90,
-            min_chunk_size=500,
+            breakpoint_threshold_amount=85,
+            min_chunk_size=100,
             sentence_split_regex=r"(?m)(?=^#+\s)|(?:\n\s*\n)",
         )
 
