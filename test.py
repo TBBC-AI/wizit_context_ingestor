@@ -28,13 +28,11 @@ CHROMA_CLOUD_TENANT = os.environ.get("CHROMA_CLOUD_TENANT", "")
 PG_CONNECTION = os.environ.get("PG_CONNECTION", "")
 LANGSMITH_API_KEY = os.environ.get("LANGSMITH_API_KEY", "")
 LANGCHAIN_PROJECT = os.environ.get("LANGCHAIN_PROJECT", "")
+GCP_SECRET_NAME = os.environ.get("GCP_SECRET_NAME", "")
 # gcp_sa_path = os.path.join(os.path.dirname(__file__), "credentials", "gcp_sa.json")
 
 if __name__ == "__main__":
     with pyinstrument.profile():
-        # db_connection_secret_name = "tbbc-mega-ingestor-db-conn"
-        gcp_secret_name = "tbbc-mega-ingestor-gcp-sa"
-
         if len(sys.argv) < 2:
             print("Please provide a file name as argument")
             sys.exit(1)
@@ -43,24 +41,26 @@ if __name__ == "__main__":
         # file_name = sys.argv[2]
 
         # if file_name is None:
-        #     file_name = "TBBC-2025.pdf.md"
+        #     file_name = "my_doc.pdf"
 
         if operation == "transcribe":
             # storage_service = LocalStorageService("data", "tmp")
             file_name = sys.argv[2]
+            source_storage_route = sys.argv[3]
+            target_storage_route = sys.argv[4]
 
             if file_name is None:
-                file_name = "TBBC-2025.pdf.md"
+                file_name = "my_doc.pdf"
 
             deelab_transcribe_manager = TranscriptionManager(
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
-                gcp_secret_name,
+                GCP_SECRET_NAME,
                 LANGSMITH_API_KEY,
                 LANGCHAIN_PROJECT,
-                storage_service="local",
-                source_storage_route="data",
-                target_storage_route="tmp",
+                storage_service="s3",
+                source_storage_route=source_storage_route,
+                target_storage_route=target_storage_route,
                 transcription_additional_instructions="""
                     - HIGHLIGHTED CONTENT DETECTION:\n
                         - Wrap all highlighted content with <highlighted_content> tags.\n
@@ -83,9 +83,11 @@ if __name__ == "__main__":
 
         elif operation == "context":
             file_name = sys.argv[2]
+            source_storage_route = sys.argv[3]
+            target_storage_route = sys.argv[4]
 
             if file_name is None:
-                file_name = "TBBC-2025.pdf.md"
+                file_name = "my_doc.pdf.md"
 
             if not file_name.endswith(".md"):
                 raise ValueError("File name must be a markdown file")
@@ -103,15 +105,15 @@ if __name__ == "__main__":
             deelab_chunks_manager = ChunksManager(
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
-                gcp_secret_name,
+                GCP_SECRET_NAME,
                 LANGSMITH_API_KEY,
                 LANGCHAIN_PROJECT,
-                StorageServices.LOCAL,
+                StorageServices.S3,
                 "pg",
                 {
                     "pg_connection": PG_CONNECTION,
-                    "embeddings_vectors_table_name": "solati",
-                    "records_manager_table_name": "solati",
+                    "embeddings_vectors_table_name": "primernivel",
+                    "records_manager_table_name": "primernivel",
                     "content_column": "document",
                     "metadata_json_column": "metadata",
                     "id_column": "id",
@@ -122,7 +124,9 @@ if __name__ == "__main__":
 
             # deelab_chunks_manager.provision_vector_store()
             chunks = asyncio.run(
-                deelab_chunks_manager.gen_context_chunks(file_name, "tmp", "tmp")
+                deelab_chunks_manager.gen_context_chunks(
+                    file_name, source_storage_route, target_storage_route
+                )
             )
             deelab_chunks_manager.index_documents_in_vector_store(chunks)
         elif operation == "query":
@@ -134,7 +138,7 @@ if __name__ == "__main__":
             deelab_chunks_manager = ChunksManager(
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
-                gcp_secret_name,
+                GCP_SECRET_NAME,
                 LANGSMITH_API_KEY,
                 LANGCHAIN_PROJECT,
                 StorageServices.LOCAL,
@@ -160,7 +164,7 @@ if __name__ == "__main__":
             pg_kdb_provisioning_manager = PgKdbProvisioningManager(
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
-                gcp_secret_name,
+                GCP_SECRET_NAME,
                 "gemini-embedding-001",
                 {
                     "pg_connection": PG_CONNECTION,
@@ -183,7 +187,7 @@ if __name__ == "__main__":
             deelab_chunks_manager = ChunksManager(
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
-                gcp_secret_name,
+                GCP_SECRET_NAME,
                 LANGSMITH_API_KEY,
                 LANGCHAIN_PROJECT,
                 StorageServices.LOCAL,
@@ -213,7 +217,7 @@ if __name__ == "__main__":
             deelab_chunks_manager = ChunksManager(
                 GCP_PROJECT_ID,
                 GCP_PROJECT_LOCATION,
-                gcp_secret_name,
+                GCP_SECRET_NAME,
                 LANGSMITH_API_KEY,
                 LANGCHAIN_PROJECT,
                 StorageServices.LOCAL,

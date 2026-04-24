@@ -132,13 +132,13 @@ class ContextChunksInDocumentApp:
         Get the context chunks in a document.
         """
         try:
-            markdown_content = self.persistence_service.load_markdown_file_content(
-                file_key
+            markdown_content, markdown_metadata = (
+                self.persistence_service.load_markdown_file_content(file_key)
             )
             langchain_rag_document = Document(
                 id=file_key,
                 page_content=markdown_content,
-                metadata={self.metadata_source: file_key},
+                metadata={self.metadata_source: file_key, **markdown_metadata},
             )
             logger.info(f"Document loaded:{file_key}")
             chunks = self.rag_chunker.gen_chunks_for_document(langchain_rag_document)

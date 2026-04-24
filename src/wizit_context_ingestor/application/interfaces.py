@@ -50,18 +50,22 @@ class PersistenceService(ABC):
 
     @abstractmethod
     def save_parsed_document(
-        self, file_key: str, parsed_document: ParsedDoc, file_tags: Optional[dict] = {}
+        self,
+        file_key: str,
+        parsed_document: ParsedDoc,
+        file_tags: Optional[dict] = {},
+        metadata: Optional[dict] = {},
     ):
         """Save a parsed document."""
         pass
 
     @abstractmethod
-    def load_markdown_file_content(self, file_key: str) -> str:
+    def load_markdown_file_content(self, file_key: str) -> tuple[str, dict]:
         """Load markdown file content"""
         pass
 
     @abstractmethod
-    def retrieve_raw_file(self, file_key: str) -> str:
+    def retrieve_raw_file(self, file_key: str) -> tuple:
         """Retrieve file path in tmp folder from storage."""
         pass
 

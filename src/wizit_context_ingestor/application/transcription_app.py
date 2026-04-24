@@ -116,13 +116,11 @@ class TranscriptionApp:
                 )
             return document
 
-    async def process_document(
-        self, file_key: str
-    ) -> Tuple[List[ParsedDocPage], ParsedDoc]:
+    async def process_document(self, file_key: str) -> Tuple[ParsedDoc, dict]:
         """
         Process a document by parsing it and returning the parsed content.
         """
-        raw_file_path = self.persistence_service.retrieve_raw_file(file_key)
+        raw_file_path, metadata = self.persistence_service.retrieve_raw_file(file_key)
         parse_doc_model_service = ParseDocModelService(raw_file_path)
         document_pages = parse_doc_model_service.parse_document_to_base64_pages()
         parse_pages_workflow_tasks = []
@@ -133,17 +131,18 @@ class TranscriptionApp:
         parsed_pages = await asyncio.gather(*parse_pages_workflow_tasks)
         logger.info(f"Parsed {len(parsed_pages)} pages")
         parsed_document = parse_doc_model_service.create_md_content(parsed_pages)
-        return parsed_pages, parsed_document
+        return parsed_document, metadata
 
     def save_parsed_document(
         self,
         file_key: str,
         parsed_document: ParsedDoc,
         file_tags: Optional[Dict[str, str]] = {},
+        metadata: Optional[Dict[str, str]] = {},
     ):
         """
         Save the parsed document to a file.
         """
         self.persistence_service.save_parsed_document(
-            file_key, parsed_document, file_tags
+            file_key, parsed_document, file_tags, metadata
         )

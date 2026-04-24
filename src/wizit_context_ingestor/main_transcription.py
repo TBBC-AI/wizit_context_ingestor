@@ -115,7 +115,7 @@ class TranscriptionManager:
             )
             persistence_service = persistence_layer.retrieve_storage_service()
 
-            transcribe_document_service = TranscriptionApp(
+            transcription_document_service = TranscriptionApp(
                 ai_application_service=self.vertex_model,
                 persistence_service=persistence_service,
                 langsmith_api_key=self.langsmith_api_key,
@@ -126,17 +126,17 @@ class TranscriptionManager:
                 max_transcription_retries=self.max_transcription_retries,
             )
             (
-                parsed_pages,
                 parsed_document,
-            ) = await transcribe_document_service.process_document(file_key)
+                metadata,
+            ) = await transcription_document_service.process_document(file_key)
             source_storage_file_tags = {}
             if persistence_service.supports_tagging:
                 # source_storage_file_tags.tag_file(file_key, {"status": "transcribed"})
                 source_storage_file_tags = persistence_service.retrieve_file_tags(
                     file_key, self.source_storage_route
                 )
-            transcribe_document_service.save_parsed_document(
-                f"{file_key}.md", parsed_document, source_storage_file_tags
+            transcription_document_service.save_parsed_document(
+                f"{file_key}.md", parsed_document, source_storage_file_tags, metadata
             )
             return f"{file_key}.md"
         except Exception as e:

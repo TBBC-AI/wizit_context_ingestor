@@ -25,14 +25,14 @@ class LocalStorageService(PersistenceService):
             file_content = file.read()
         return file_content
 
-    def retrieve_raw_file(self, file_key: str) -> str:
+    def retrieve_raw_file(self, file_key: str) -> tuple:
         """Retrieve file path in tmp folder from local storage.
 
         Args:
             file_key: The key (path) of the file in local storage
 
         Returns:
-            str: The path of the file in tmp folder
+            tuple: The path of the file in tmp folder and an empty dict
 
         Raises:
             ClientError: If there's an error retrieving the object from local storage
@@ -41,7 +41,7 @@ class LocalStorageService(PersistenceService):
             tmp_file_path = f"{self.source_storage_route}/{file_key}"
             if not os.path.exists(tmp_file_path):
                 raise FileNotFoundError(f"File {file_key} not found in local storage")
-            return tmp_file_path
+            return tmp_file_path, {}
         except Exception as e:
             logger.error(
                 f"Unexpected error retrieving file {file_key} from local storage: {str(e)}"
@@ -49,7 +49,11 @@ class LocalStorageService(PersistenceService):
             raise
 
     def save_parsed_document(
-        self, file_key: str, parsed_document: ParsedDoc, file_tags: Optional[dict] = {}
+        self,
+        file_key: str,
+        parsed_document: ParsedDoc,
+        file_tags: Optional[dict] = {},
+        metadata: Optional[dict] = {},
     ):
         """Save a parsed document."""
         with open(

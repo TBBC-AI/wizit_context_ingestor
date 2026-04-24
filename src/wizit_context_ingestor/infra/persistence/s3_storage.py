@@ -27,29 +27,30 @@ class S3StorageService(PersistenceService):
         self.target_bucket_name = target_bucket_name
         self.supports_tagging = hasattr(self, "retrieve_file_tags")
 
-    def load_markdown_file_content(self, file_key: str) -> str:
+    def load_markdown_file_content(self, file_key: str) -> tuple[str, dict]:
         """Load markdown file content from S3 storage.
 
         Args:
             file_key: The key (path) of the file in S3
 
         Returns:
-            str: The content of the file as a string
+            tuple: A tuple containing the file content as a string and the metadata dictionary
 
         Raises:
             ClientError: If there's an error retrieving the object from S3
         """
         try:
             # Get the object from S3
-            file_content = None
             response = self.s3.get_object(Bucket=self.target_bucket_name, Key=file_key)
-            tmp_file_key = f"/tmp/{file_key}"
-            os.makedirs(os.path.dirname(tmp_file_key), exist_ok=True)
-            with open(tmp_file_key, "wb") as f:
-                f.write(response["Body"].read())
-            with open(tmp_file_key, "r", encoding="utf-8") as f:
-                file_content = f.read()
-            return file_content
+            file_content = response["Body"].read()
+            # tmp_file_key = f"/tmp/{file_key}"
+            # os.makedirs(os.path.dirname(tmp_file_key), exist_ok=True)
+            # with open(tmp_file_key, "wb") as f:
+            #     f.write(response["Body"].read())
+            # with open(tmp_file_key, "r", encoding="utf-8") as f:
+            #     file_content = f.read()
+            metadata = response["Metadata"] if response.get("Metadata") else {}
+            return file_content, metadata
         except ClientError as e:
             logger.error(f"Error loading file {file_key} from S3: {str(e)}")
             raise
@@ -57,14 +58,14 @@ class S3StorageService(PersistenceService):
             logger.error(f"Unexpected error loading file {file_key} from S3: {str(e)}")
             raise
 
-    def retrieve_raw_file(self, file_key: str) -> str:
+    def retrieve_raw_file(self, file_key: str) -> tuple:
         """Retrieve file path in tmp folder from S3 storage.
 
         Args:
             file_key: The key (path) of the file in S3
 
         Returns:
-            str: The path of the file in tmp folder
+            tuple: The path of the file in tmp folder and the file metadata
 
         Raises:
             ClientError: If there's an error retrieving the object from S3
@@ -77,7 +78,9 @@ class S3StorageService(PersistenceService):
             os.makedirs(os.path.dirname(tmp_file_key), exist_ok=True)
             with open(tmp_file_key, "wb") as f:
                 f.write(response["Body"].read())
-            return tmp_file_key
+            metadata = response["Metadata"] if response.get("Metadata") else {}
+            return tmp_file_key, metadata
+
         except ClientError as e:
             logger.error(f"Error retrieving file {file_key} from S3: {str(e)}")
             raise
@@ -88,7 +91,11 @@ class S3StorageService(PersistenceService):
             raise
 
     def save_parsed_document(
-        self, file_key: str, parsed_document: ParsedDoc, file_tags: Optional[dict] = {}
+        self,
+        file_key: str,
+        parsed_document: ParsedDoc,
+        file_tags: Optional[dict] = {},
+        metadata: Optional[dict] = {},
     ):
         """Save a parsed document to S3.
 
@@ -96,6 +103,7 @@ class S3StorageService(PersistenceService):
             file_name: The key (path) to save the file to in S3
             parsed_document: The parsed document to save
             file_tags: Tags to add to parsed document
+            metadata: Metadata to add to parsed document
 
         Raises:
             ClientError: If there's an error saving to S3
@@ -104,21 +112,19 @@ class S3StorageService(PersistenceService):
             # Convert document content to bytes
             content_bytes = parsed_document.document_text.encode("utf-8")
             # Upload the file to S3
-            if not file_tags:
-                self.s3.put_object(
-                    Bucket=self.target_bucket_name, Key=file_key, Body=content_bytes
-                )
-            else:
+            put_kwargs = {
+                "Bucket": self.target_bucket_name,
+                "Key": file_key,
+                "Body": content_bytes,
+                "Metadata": metadata,
+            }
+            if file_tags:
                 tagging_string = "&".join(
                     [f"{key}={value}" for key, value in file_tags.items()]
                 )
-                self.s3.put_object(
-                    Bucket=self.target_bucket_name,
-                    Key=file_key,
-                    Body=content_bytes,
-                    Tagging=tagging_string,
-                )
+                put_kwargs["Tagging"] = tagging_string
 
+            self.s3.put_object(**put_kwargs)
             logger.info(f"Successfully saved document to S3 as {file_key}")
         except ClientError as e:
             logger.error(f"Error saving document to S3: {str(e)}")
