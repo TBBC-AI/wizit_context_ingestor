@@ -138,7 +138,11 @@ class ContextChunksInDocumentApp:
             langchain_rag_document = Document(
                 id=file_key,
                 page_content=markdown_content,
-                metadata={self.metadata_source: file_key, **markdown_metadata},
+                metadata={
+                    self.metadata_source: file_key,
+                    "source_url": "",
+                    **markdown_metadata,
+                },
             )
             logger.info(f"Document loaded:{file_key}")
             chunks = self.rag_chunker.gen_chunks_for_document(langchain_rag_document)
